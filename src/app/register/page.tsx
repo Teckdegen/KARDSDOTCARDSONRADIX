@@ -87,16 +87,16 @@ export default function RegisterPage() {
             <div className="inline-flex items-center justify-center mb-6">
               <Logo size={80} className="rounded-3xl" />
             </div>
-            <h1 className="text-3xl font-bold mb-2" style={{ color: '#F5F5DC' }}>Create Account</h1>
-            <p className="text-white/60 text-sm">Join KARDS today</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-3" style={{ color: '#F5F5DC' }}>Create Account</h1>
+            <p className="text-white/60 text-base md:text-lg">Join KARDS today</p>
           </div>
 
           {step === 'form' ? (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-white/70 text-sm mb-2 block font-medium flex items-center gap-2">
-                    <User size={16} />
+                  <label className="text-white/70 text-base md:text-lg mb-3 block font-medium flex items-center gap-2">
+                    <User size={18} className="md:w-5 md:h-5" />
                     First name
                   </label>
                   <GlassInput
@@ -106,7 +106,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-white/70 text-sm mb-2 block font-medium">Last name</label>
+                  <label className="text-white/70 text-base md:text-lg mb-3 block font-medium">Last name</label>
                   <GlassInput
                     placeholder="Doe"
                     value={formData.lastName}
@@ -115,8 +115,8 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div>
-                <label className="text-white/70 text-sm mb-2 block font-medium flex items-center gap-2">
-                  <Mail size={16} />
+                <label className="text-white/70 text-base md:text-lg mb-3 block font-medium flex items-center gap-2">
+                  <Mail size={18} className="md:w-5 md:h-5" />
                   Email address
                 </label>
                 <GlassInput
@@ -127,8 +127,8 @@ export default function RegisterPage() {
                 />
               </div>
               <div>
-                <label className="text-white/70 text-sm mb-2 block font-medium flex items-center gap-2">
-                  <Hash size={16} />
+                <label className="text-white/70 text-base md:text-lg mb-3 block font-medium flex items-center gap-2">
+                  <Hash size={18} className="md:w-5 md:h-5" />
                   Referral Code
                 </label>
                 <GlassInput
@@ -136,26 +136,26 @@ export default function RegisterPage() {
                   value={formData.referralCode}
                   onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toLowerCase() })}
                 />
-                <p className="text-white/40 text-xs mt-2">Choose a unique username-style code</p>
+                <p className="text-white/40 text-sm md:text-base mt-2">Choose a unique username-style code</p>
               </div>
               <GlassButton
                 onClick={handleRegister}
                 disabled={loading}
                 variant="primary"
-                className="w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? 'Creating...' : (
                   <>
-                    Create Account <ArrowRight size={18} />
+                    Create Account <ArrowRight size={18} className="md:w-5 md:h-5" />
                   </>
                 )}
               </GlassButton>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div>
-                <label className="text-white/70 text-sm mb-4 block font-medium flex items-center gap-2 justify-center">
-                  <Lock size={16} />
+                <label className="text-white/70 text-base md:text-lg mb-4 block font-medium flex items-center gap-2 justify-center">
+                  <Lock size={18} className="md:w-5 md:h-5" />
                   Verification Code
                 </label>
                 <CodeInput
@@ -167,17 +167,17 @@ export default function RegisterPage() {
                     handleVerifyCode();
                   }}
                 />
-                <p className="text-white/40 text-xs text-center mt-4">Enter the 6-digit code sent to your email</p>
+                <p className="text-white/40 text-sm md:text-base text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
               <GlassButton
                 onClick={handleVerifyCode}
                 disabled={loading || code.length !== 6}
                 variant="primary"
-                className="w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? 'Verifying...' : (
                   <>
-                    Verify Code <ArrowRight size={18} />
+                    Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
                   </>
                 )}
               </GlassButton>

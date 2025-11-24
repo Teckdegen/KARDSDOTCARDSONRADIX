@@ -82,15 +82,15 @@ export default function LoginPage() {
             <div className="inline-flex items-center justify-center mb-6">
               <Logo size={80} className="rounded-3xl" />
             </div>
-            <h1 className="text-3xl font-bold mb-2" style={{ color: '#F5F5DC' }}>Welcome back</h1>
-            <p className="text-white/60 text-sm">Sign in to continue</p>
+            <h1 className="text-4xl md:text-5xl font-bold mb-3" style={{ color: '#F5F5DC' }}>Welcome back</h1>
+            <p className="text-white/60 text-base md:text-lg">Sign in to continue</p>
           </div>
 
           {step === 'email' ? (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div>
-                <label className="text-white/70 text-sm mb-2 block font-medium flex items-center gap-2">
-                  <Mail size={16} />
+                <label className="text-white/70 text-base md:text-lg mb-3 block font-medium flex items-center gap-2">
+                  <Mail size={18} className="md:w-5 md:h-5" />
                   Email address
                 </label>
                 <GlassInput
@@ -104,20 +104,20 @@ export default function LoginPage() {
                 onClick={handleSendCode}
                 disabled={loading}
                 variant="primary"
-                className="w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? 'Sending...' : (
                   <>
-                    Send Code <ArrowRight size={18} />
+                    Send Code <ArrowRight size={18} className="md:w-5 md:h-5" />
                   </>
                 )}
               </GlassButton>
             </div>
           ) : (
-            <div className="space-y-5">
+            <div className="space-y-6">
               <div>
-                <label className="text-white/70 text-sm mb-4 block font-medium flex items-center gap-2 justify-center">
-                  <Lock size={16} />
+                <label className="text-white/70 text-base md:text-lg mb-4 block font-medium flex items-center gap-2 justify-center">
+                  <Lock size={18} className="md:w-5 md:h-5" />
                   Verification Code
                 </label>
                 <CodeInput
@@ -129,17 +129,17 @@ export default function LoginPage() {
                     handleVerifyCode();
                   }}
                 />
-                <p className="text-white/40 text-xs text-center mt-4">Enter the 6-digit code sent to your email</p>
+                <p className="text-white/40 text-sm md:text-base text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
               <GlassButton
                 onClick={handleVerifyCode}
                 disabled={loading || code.length !== 6}
                 variant="primary"
-                className="w-full flex items-center justify-center gap-2"
+                className="w-full flex items-center justify-center gap-2 mt-2"
               >
                 {loading ? 'Verifying...' : (
                   <>
-                    Verify Code <ArrowRight size={18} />
+                    Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
                   </>
                 )}
               </GlassButton>
