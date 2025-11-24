@@ -7,6 +7,8 @@ interface GlassInputProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   className?: string;
   required?: boolean;
+  min?: string;
+  step?: string;
 }
 
 export default function GlassInput({
@@ -16,6 +18,8 @@ export default function GlassInput({
   onChange,
   className = '',
   required = false,
+  min,
+  step,
 }: GlassInputProps) {
   return (
     <input
@@ -25,6 +29,8 @@ export default function GlassInput({
       onChange={onChange}
       className={`glass-input w-full ${className}`}
       required={required}
+      min={min}
+      step={step}
     />
   );
 }
