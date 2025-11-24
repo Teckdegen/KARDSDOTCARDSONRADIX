@@ -1135,6 +1135,146 @@ This project is configured for Vercel deployment with the following files:
 
 ---
 
+## 💳 Cashwyre API Endpoints
+
+The platform uses the following Cashwyre API endpoints for card management:
+
+### Base URL
+```
+https://businessapi.cashwyre.com/api/v1.0
+```
+
+### Authentication
+All requests use Bearer token authentication with `CASHWYRE_SECRET_KEY`.
+
+### Endpoints Used
+
+#### 1. **Create Crypto Address** 
+**Endpoint:** `POST /CustomerCryptoAddress/createCryptoAddress`  
+**Used in:** Card creation flow  
+**Purpose:** Creates ETH deposit address for card funding  
+**When called:** When user creates first card (if address doesn't exist)  
+**Request Body:**
+```json
+{
+  "requestId": "req-20250115T103045-ABC123",
+  "FirstName": "John",
+  "LastName": "Doe",
+  "Email": "user@example.com",
+  "AssetType": "ETH",
+  "Network": "USDC",
+  "Amount": 0.0001
+}
+```
+
+#### 2. **Create Card**
+**Endpoint:** `POST /CustomerCard/createCard`  
+**Used in:** Webhook handler (after payment received)  
+**Purpose:** Creates virtual card in Cashwyre system  
+**When called:** AFTER webhook receives payment confirmation  
+**Request Body:**
+```json
+{
+  "requestId": "req-20250115T103045-ABC123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "user@example.com",
+  "phoneCode": "+1",
+  "phoneNumber": "1234567890",
+  "dateOfBirth": "1990-01-01",
+  "homeAddressNumber": "123",
+  "homeAddress": "Main Street",
+  "cardName": "John Doe",
+  "cardType": "virtual",
+  "cardBrand": "visa",
+  "amountInUSD": 15
+}
+```
+
+#### 3. **Top Up Card**
+**Endpoint:** `POST /CustomerCard/topup`  
+**Used in:** Webhook handler (after top-up payment received)  
+**Purpose:** Adds funds to existing card  
+**When called:** AFTER webhook receives top-up payment  
+**Request Body:**
+```json
+{
+  "requestId": "req-20250115T103045-ABC123",
+  "cardCode": "VCARD2024121622195100121",
+  "amountInUSD": 7.5
+}
+```
+**Note:** Amount is already reduced by $2.5 processing fee
+
+#### 4. **Get Card Details**
+**Endpoint:** `POST /CustomerCard/getCard`  
+**Used in:** Card details API route  
+**Purpose:** Fetches real-time card information and balance  
+**When called:** When user views card details  
+**Request Body:**
+```json
+{
+  "requestId": "req-20250115T103045-ABC123",
+  "cardCode": "VCARD2024121622195100121"
+}
+```
+
+#### 5. **Get Card Transactions**
+**Endpoint:** `POST /CustomerCard/getCardTransactions`  
+**Used in:** Card transactions API route  
+**Purpose:** Fetches card transaction history  
+**When called:** When user views card transactions  
+**Request Body:**
+```json
+{
+  "requestId": "req-20250115T103045-ABC123",
+  "cardCode": "VCARD2024121622195100121"
+}
+```
+
+#### 6. **Freeze Card**
+**Endpoint:** `POST /Customer/freezeCard`  
+**Used in:** Freeze card API route  
+**Purpose:** Freezes a card to prevent transactions  
+**When called:** When user clicks "Freeze Card"  
+**Request Body:**
+```json
+{
+  "requestId": "req-20250115T103045-ABC123",
+  "cardCode": "VCARD2024121622195100121"
+}
+```
+
+#### 7. **Unfreeze Card**
+**Endpoint:** `POST /Customer/unfreezeCard`  
+**Used in:** Unfreeze card API route  
+**Purpose:** Unfreezes a previously frozen card  
+**When called:** When user clicks "Unfreeze Card"  
+**Request Body:**
+```json
+{
+  "requestId": "req-20250115T103045-ABC123",
+  "cardCode": "VCARD2024121622195100121"
+}
+```
+
+### Request ID Format
+All requests include a unique `requestId` in the format:
+```
+req-{timestamp}-{random}
+```
+Example: `req-20250115T103045-ABC123`
+
+### Auto-Included Fields
+The `callCashwyreAPI()` function automatically adds:
+- `appId` - From `CASHWYRE_APP_ID` env variable
+- `businessCode` - From `CASHWYRE_BUSINESS_CODE` env variable
+
+### Retry Logic
+All API calls include automatic retry with exponential backoff (3 attempts).
+
+---
+
 ## 📚 Documentation Links
 
 - Radix Engine Toolkit: https://docs.radixdlt.com/docs/radix-engine-toolkit
