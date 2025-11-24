@@ -100,7 +100,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <div className="pt-2">
+              <div className="pt-6">
                 <GlassButton
                   onClick={handleSendCode}
                   disabled={loading}
@@ -133,7 +133,7 @@ export default function LoginPage() {
                 />
                 <p className="text-white/30 text-xs md:text-sm text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
-              <div className="pt-2">
+              <div className="pt-6">
                 <GlassButton
                   onClick={handleVerifyCode}
                   disabled={loading || code.length !== 6}

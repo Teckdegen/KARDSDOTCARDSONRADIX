@@ -138,7 +138,7 @@ export default function RegisterPage() {
                 />
                 <p className="text-white/30 text-xs md:text-sm mt-2">Choose a unique username-style code</p>
               </div>
-              <div className="pt-2">
+              <div className="pt-6">
                 <GlassButton
                   onClick={handleRegister}
                   disabled={loading}
@@ -171,7 +171,7 @@ export default function RegisterPage() {
                 />
                 <p className="text-white/30 text-xs md:text-sm text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
-              <div className="pt-2">
+              <div className="pt-6">
                 <GlassButton
                   onClick={handleVerifyCode}
                   disabled={loading || code.length !== 6}
