@@ -6,7 +6,7 @@ import { buildTransferManifest, signAndSubmitManifest } from '@/lib/radix-engine
 
 export async function POST(request: NextRequest) {
   try {
-    const user = requireAuth(request);
+    const user = await requireAuth(request);
 
     // Get user's unclaimed earnings
     const { data: userData } = await supabaseAdmin

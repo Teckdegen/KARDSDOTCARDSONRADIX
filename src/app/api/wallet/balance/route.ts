@@ -5,7 +5,7 @@ import { getBalances } from '@/lib/radix-rpc';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = requireAuth(request);
+    const user = await requireAuth(request);
 
     // Get user's Radix wallet address
     const { data: wallet } = await supabaseAdmin

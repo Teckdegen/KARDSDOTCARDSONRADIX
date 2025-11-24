@@ -9,7 +9,7 @@ import { checkXRDForGas, checkXRDForBridge, getUSDCBalance } from '@/lib/radix-r
 
 export async function POST(request: NextRequest) {
   try {
-    const user = requireAuth(request);
+    const user = await requireAuth(request);
     const {
       phoneCode,
       phoneNumber,

@@ -4,7 +4,7 @@ import { sendTelegramMessage } from '@/lib/telegram';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = requireAuth(request);
+    const user = await requireAuth(request);
     const { name, email, subject, message } = await request.json();
 
     if (!name || !email || !subject || !message) {

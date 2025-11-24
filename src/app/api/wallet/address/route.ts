@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase';
 
 export async function GET(request: NextRequest) {
   try {
-    const user = requireAuth(request);
+    const user = await requireAuth(request);
 
     const { data: wallet } = await supabaseAdmin
       .from('wallets')

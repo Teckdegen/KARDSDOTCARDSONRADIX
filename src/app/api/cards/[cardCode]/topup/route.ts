@@ -12,7 +12,7 @@ export async function POST(
   { params }: { params: Promise<{ cardCode: string }> }
 ) {
   try {
-    const user = requireAuth(request);
+    const user = await requireAuth(request);
     const { cardCode } = await params;
     const { amount } = await request.json();
 

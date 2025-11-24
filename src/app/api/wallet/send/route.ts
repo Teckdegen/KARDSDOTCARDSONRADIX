@@ -7,7 +7,7 @@ import { checkXRDForGas, getUSDCBalance } from '@/lib/radix-rpc';
 
 export async function POST(request: NextRequest) {
   try {
-    const user = requireAuth(request);
+    const user = await requireAuth(request);
     const { recipientAddress, amount } = await request.json();
 
     if (!recipientAddress || !amount || amount <= 0) {
