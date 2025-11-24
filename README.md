@@ -1217,6 +1217,4 @@ const requiredXRD = await getXRDForTwoDollars();
 ## License
 
 Private - All rights reserved
-#   K A R D S D O T C A R D S O N R A D I X 
- 
- 
+#
