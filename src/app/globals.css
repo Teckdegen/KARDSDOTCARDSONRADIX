@@ -34,9 +34,10 @@ html {
 body {
   background: transparent;
   background-image: 
-    radial-gradient(at 0% 0%, rgba(245, 245, 220, 0.03) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(245, 245, 220, 0.02) 0px, transparent 50%),
-    radial-gradient(at 50% 50%, rgba(245, 245, 220, 0.01) 0px, transparent 50%);
+    radial-gradient(circle at 20% 30%, rgba(245, 245, 220, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 80% 70%, rgba(245, 245, 220, 0.05) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(245, 245, 220, 0.03) 0%, transparent 60%),
+    linear-gradient(135deg, rgba(10, 14, 39, 0.8) 0%, rgba(15, 20, 45, 0.9) 100%);
   color: var(--foreground);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
   min-height: 100vh;
@@ -46,6 +47,21 @@ body {
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
   font-size: 16px;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    radial-gradient(circle at 10% 20%, rgba(245, 245, 220, 0.04) 0%, transparent 50%),
+    radial-gradient(circle at 90% 80%, rgba(245, 245, 220, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+  z-index: 0;
 }
 
 @media (min-width: 768px) {
@@ -67,17 +83,19 @@ body {
 }
 
 .glass-card {
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(50px) saturate(200%);
-  -webkit-backdrop-filter: blur(50px) saturate(200%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 28px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
+  backdrop-filter: blur(60px) saturate(180%);
+  -webkit-backdrop-filter: blur(60px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 32px;
   padding: 32px;
   box-shadow: 
-    0 12px 48px 0 rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.08),
-    0 0 0 1px rgba(255, 255, 255, 0.03);
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    0 20px 60px 0 rgba(0, 0, 0, 0.4),
+    0 8px 24px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
+    inset 0 -1px 0 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(255, 255, 255, 0.05);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
 }
@@ -96,7 +114,30 @@ body {
   left: 0;
   right: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  background: linear-gradient(90deg, 
+    transparent 0%, 
+    rgba(255, 255, 255, 0.3) 20%, 
+    rgba(245, 245, 220, 0.4) 50%, 
+    rgba(255, 255, 255, 0.3) 80%, 
+    transparent 100%);
+  opacity: 0.6;
+}
+
+.glass-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(245, 245, 220, 0.08) 0%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.glass-card:hover::after {
+  opacity: 1;
 }
 
 .glass-card:active {
@@ -105,19 +146,22 @@ body {
 }
 
 .glass-input {
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 0.5px solid rgba(255, 255, 255, 0.15);
-  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(25px) saturate(150%);
+  -webkit-backdrop-filter: blur(25px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 16px;
   padding: 14px 16px;
-  color: rgba(255, 255, 255, 0.7);
+  color: rgba(255, 255, 255, 0.75);
   font-size: 15px;
   font-weight: 400;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
   -webkit-appearance: none;
   appearance: none;
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .glass-input:focus {
@@ -138,29 +182,35 @@ body {
 
 .glass-input:focus {
   outline: none;
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(245, 245, 220, 0.5);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%);
   box-shadow: 
-    0 0 0 4px rgba(245, 245, 220, 0.1),
-    0 4px 12px rgba(0, 0, 0, 0.15);
+    0 0 0 3px rgba(245, 245, 220, 0.15),
+    0 4px 16px rgba(245, 245, 220, 0.2),
+    inset 0 1px 2px rgba(255, 255, 255, 0.2),
+    0 2px 12px rgba(0, 0, 0, 0.2);
+  transform: translateY(-1px);
 }
 
 .glass-button {
-  background: rgba(245, 245, 220, 0.15);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 0.5px solid rgba(245, 245, 220, 0.25);
-  border-radius: 14px;
+  background: linear-gradient(135deg, rgba(245, 245, 220, 0.18) 0%, rgba(245, 245, 220, 0.12) 100%);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(245, 245, 220, 0.3);
+  border-radius: 16px;
   padding: 14px 24px;
   color: var(--accent);
   font-weight: 500;
   font-size: 15px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
   -webkit-tap-highlight-color: transparent;
   user-select: none;
+  box-shadow: 
+    0 4px 12px rgba(245, 245, 220, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 @media (max-width: 768px) {
@@ -191,26 +241,39 @@ body {
 }
 
 .glass-button:hover {
-  background: rgba(245, 245, 220, 0.25);
-  border-color: rgba(245, 245, 220, 0.4);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(245, 245, 220, 0.2);
+  background: linear-gradient(135deg, rgba(245, 245, 220, 0.25) 0%, rgba(245, 245, 220, 0.18) 100%);
+  border-color: rgba(245, 245, 220, 0.45);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 24px rgba(245, 245, 220, 0.25),
+    0 4px 12px rgba(245, 245, 220, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
 }
 
 .glass-button-primary {
-  background: linear-gradient(135deg, var(--accent) 0%, #E8E8D3 100%);
+  background: linear-gradient(135deg, #F5F5DC 0%, #E8E8D3 50%, #DDDDC8 100%);
   color: var(--background);
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.3);
   box-shadow: 
-    0 4px 16px rgba(245, 245, 220, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+    0 8px 24px rgba(245, 245, 220, 0.4),
+    0 4px 12px rgba(245, 245, 220, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.glass-button-primary::before {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
 }
 
 .glass-button-primary:hover {
-  background: linear-gradient(135deg, #E8E8D3 0%, #DDDDC8 100%);
+  background: linear-gradient(135deg, #E8E8D3 0%, #DDDDC8 50%, #D3D3B8 100%);
+  transform: translateY(-2px);
   box-shadow: 
-    0 6px 24px rgba(245, 245, 220, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    0 12px 32px rgba(245, 245, 220, 0.5),
+    0 6px 16px rgba(245, 245, 220, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.1);
 }
 
 .glass-button:disabled {
@@ -224,19 +287,22 @@ body {
 .code-input-box {
   width: 56px;
   height: 56px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
+  backdrop-filter: blur(25px) saturate(150%);
+  -webkit-backdrop-filter: blur(25px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 18px;
   text-align: center;
   font-size: 28px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.7);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: rgba(255, 255, 255, 0.75);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   caret-color: var(--accent);
   -webkit-appearance: none;
   appearance: none;
+  box-shadow: 
+    inset 0 1px 2px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .code-input-box:focus {
@@ -253,10 +319,14 @@ body {
 
 .code-input-box:focus {
   outline: none;
-  border-color: var(--accent);
-  background: rgba(255, 255, 255, 0.15);
-  transform: scale(1.05);
-  box-shadow: 0 0 0 4px rgba(245, 245, 220, 0.1);
+  border-color: rgba(245, 245, 220, 0.5);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
+  transform: scale(1.08);
+  box-shadow: 
+    0 0 0 3px rgba(245, 245, 220, 0.2),
+    0 4px 16px rgba(245, 245, 220, 0.25),
+    inset 0 1px 2px rgba(255, 255, 255, 0.3),
+    0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
 /* Smooth scrolling */
@@ -287,11 +357,20 @@ html {
 @keyframes fadeIn {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px) scale(0.95);
   }
   to {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
   }
 }
 
