@@ -1,6 +1,8 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY!);
+// Use placeholder API key for build time, actual key will be used at runtime in Vercel
+const resendApiKey = process.env.RESEND_API_KEY || 're_placeholder_key_for_build';
+const resend = new Resend(resendApiKey);
 
 export async function sendAuthCode(email: string, code: string): Promise<void> {
   try {
