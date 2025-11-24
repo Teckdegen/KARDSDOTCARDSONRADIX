@@ -138,18 +138,20 @@ export default function RegisterPage() {
                 />
                 <p className="text-white/40 text-sm md:text-base mt-2">Choose a unique username-style code</p>
               </div>
-              <GlassButton
-                onClick={handleRegister}
-                disabled={loading}
-                variant="primary"
-                className="w-full flex items-center justify-center gap-2 mt-2"
-              >
-                {loading ? 'Creating...' : (
-                  <>
-                    Create Account <ArrowRight size={18} className="md:w-5 md:h-5" />
-                  </>
-                )}
-              </GlassButton>
+              <div className="pt-2">
+                <GlassButton
+                  onClick={handleRegister}
+                  disabled={loading}
+                  variant="primary"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  {loading ? 'Creating...' : (
+                    <>
+                      Create Account <ArrowRight size={18} className="md:w-5 md:h-5" />
+                    </>
+                  )}
+                </GlassButton>
+              </div>
             </div>
           ) : (
             <div className="space-y-6">
@@ -169,18 +171,20 @@ export default function RegisterPage() {
                 />
                 <p className="text-white/40 text-sm md:text-base text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
-              <GlassButton
-                onClick={handleVerifyCode}
-                disabled={loading || code.length !== 6}
-                variant="primary"
-                className="w-full flex items-center justify-center gap-2 mt-2"
-              >
-                {loading ? 'Verifying...' : (
-                  <>
-                    Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
-                  </>
-                )}
-              </GlassButton>
+              <div className="pt-2">
+                <GlassButton
+                  onClick={handleVerifyCode}
+                  disabled={loading || code.length !== 6}
+                  variant="primary"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  {loading ? 'Verifying...' : (
+                    <>
+                      Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
+                    </>
+                  )}
+                </GlassButton>
+              </div>
             </div>
           )}
 

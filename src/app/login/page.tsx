@@ -100,18 +100,20 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <GlassButton
-                onClick={handleSendCode}
-                disabled={loading}
-                variant="primary"
-                className="w-full flex items-center justify-center gap-2 mt-2"
-              >
-                {loading ? 'Sending...' : (
-                  <>
-                    Send Code <ArrowRight size={18} className="md:w-5 md:h-5" />
-                  </>
-                )}
-              </GlassButton>
+              <div className="pt-2">
+                <GlassButton
+                  onClick={handleSendCode}
+                  disabled={loading}
+                  variant="primary"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  {loading ? 'Sending...' : (
+                    <>
+                      Send Code <ArrowRight size={18} className="md:w-5 md:h-5" />
+                    </>
+                  )}
+                </GlassButton>
+              </div>
             </div>
           ) : (
             <div className="space-y-6">
@@ -131,18 +133,20 @@ export default function LoginPage() {
                 />
                 <p className="text-white/40 text-sm md:text-base text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
-              <GlassButton
-                onClick={handleVerifyCode}
-                disabled={loading || code.length !== 6}
-                variant="primary"
-                className="w-full flex items-center justify-center gap-2 mt-2"
-              >
-                {loading ? 'Verifying...' : (
-                  <>
-                    Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
-                  </>
-                )}
-              </GlassButton>
+              <div className="pt-2">
+                <GlassButton
+                  onClick={handleVerifyCode}
+                  disabled={loading || code.length !== 6}
+                  variant="primary"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  {loading ? 'Verifying...' : (
+                    <>
+                      Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
+                    </>
+                  )}
+                </GlassButton>
+              </div>
               <button
                 onClick={() => {
                   setStep('email');
