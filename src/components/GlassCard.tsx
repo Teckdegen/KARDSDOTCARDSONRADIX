@@ -3,7 +3,7 @@ import React from 'react';
 interface GlassCardProps {
   children: React.ReactNode;
   className?: string;
-  onClick?: () => void;
+  onClick?: (e: React.MouseEvent) => void;
 }
 
 export default function GlassCard({ children, className = '', onClick }: GlassCardProps) {
