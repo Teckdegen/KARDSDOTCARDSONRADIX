@@ -384,31 +384,235 @@ CREATE TABLE cards (
 - **`card_wallet_address`**: ETH address where funds are bridged
   - Used for top-ups and initial funding
 
-### Card Creation Flow
+### Card Creation Process - Complete Flow
 
+The card creation process is a multi-step asynchronous flow that involves blockchain transactions, bridge operations, and webhook handlers.
+
+#### Step-by-Step Process:
+
+**1. User Initiates Card Creation** (`POST /api/cards/create`)
 ```
-User creates card
-    ↓
-Card record created in Supabase (card_code = NULL initially, status = 'processing')
-    ↓
-ETH wallet address generated (if not exists)
-    ↓
-$10 USDC sent to insurance wallet
-    ↓
-Bridge transaction initiated (user's amount) → Funds bridged to ETH wallet
-    ↓
-Webhook receives payment confirmation (stablecoin.usdc.received.success)
-    ↓
-Webhook calls Cashwyre createCard API (with stored form data)
-    ↓
-Cashwyre creates card and sends card creation webhook
-    ↓
-Card creation webhook updates Supabase with card_code
-    ↓
-Card now has: card_code = "VCARD2024121622195100121", status = 'active'
+User fills form with:
+- Personal info (name, phone, DOB, address)
+- Card preferences (name, type, brand)
+- Initial amount (minimum $15 USDC)
+- Optional referral code
 ```
 
-**Key Point:** The `createCard` API endpoint is called **AFTER** the webhook receives payment confirmation, not during the initial card creation request.
+**2. Validation & Checks**
+```
+✅ Validate all form fields
+✅ Check user has less than 4 cards
+✅ Check USDC balance: Must have ($10 insurance + initialAmount)
+✅ Check XRD balance: Must have ~410 XRD for bridge transaction
+```
+
+**3. Create ETH Deposit Address** (if doesn't exist)
+```
+Call Cashwyre API: /CustomerCryptoAddress/createCryptoAddress
+→ Returns ETH address for card funding
+→ Stored in users.eth_deposit_address
+```
+
+**4. Send Insurance Fee**
+```
+Transaction 1: Send $10 USDC to insurance wallet
+- Build transfer manifest
+- Sign with user's private key
+- Submit to Radix network
+- Status: 'success' immediately
+- Record stored in transactions table
+```
+
+**5. Create Pending Card Record**
+```
+Insert into cards table:
+- user_id
+- card_wallet_address (ETH address)
+- card_name, card_type, card_brand
+- status: 'processing'
+- form_data: JSON (stored for webhook use)
+- card_code: NULL (will be set later)
+```
+
+**6. Bridge Funds to ETH Wallet**
+```
+Transaction 2: Bridge initialAmount USDC from Radix → Ethereum
+- Get bridge quote from Astrolescent Bridge API
+- Extract transaction manifest
+- Sign manifest with user's private key
+- Submit to Radix network
+- Status: 'pending' (waits for bridge completion)
+- Record stored in transactions table
+```
+
+**7. Process Referral** (if code provided)
+```
+- Find referrer by referral code
+- Create referral record (status: 'pending')
+- Update referrer's weekly_earnings (+$0.5)
+- Update referrer's total_earnings (+$0.5)
+```
+
+**8. Return Response to User**
+```
+Response: "Card creation initiated. Processing..."
+User sees: Card appears in list with status "Processing"
+```
+
+**9. Bridge Completes** (Automatic - Backend)
+```
+Hyperlane bridge processes:
+- Burns USDC on Radix
+- Releases USDC on Ethereum
+- Funds arrive at ETH wallet address
+```
+
+**10. Payment Webhook Received** (`POST /api/webhooks/cashwyre-payment`)
+```
+Event: stablecoin.usdc.received.success
+Data: { address, amount }
+
+System:
+- Finds pending card by ETH address
+- Retrieves stored form_data
+- Calls Cashwyre API: /CustomerCard/createCard
+  → Creates card in Cashwyre system
+  → Uses stored form data
+```
+
+**11. Card Creation Webhook Received** (`POST /api/webhooks/cashwyre-card-created`)
+```
+Event: virtualcard.created.success
+Data: { cardCode, CustomerEmail, CustomerId, CardBalance, Last4, ExpiryOn }
+
+System:
+- Finds user by email
+- Finds pending card by ETH address
+- Updates card record:
+  ✅ card_code = "VCARD2024121622195100121"
+  ✅ customer_code = CustomerId
+  ✅ status = 'active'
+  ✅ balance = CardBalance
+  ✅ last4 = Last4
+  ✅ expiry_on = ExpiryOn
+- Updates bridge transaction status: 'success'
+```
+
+**12. Card Ready**
+```
+Card now appears in user's account:
+- Status: 'active'
+- Has card_code
+- Has balance
+- Ready to use
+```
+
+#### Visual Flow Diagram:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  USER ACTION: Fill form & click "Create Card"              │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  VALIDATION                                                 │
+│  ✅ Form fields ✅ Card limit ✅ USDC balance ✅ XRD balance│
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  CREATE ETH ADDRESS (if needed)                             │
+│  Cashwyre API: /CustomerCryptoAddress/createCryptoAddress  │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  TRANSACTION 1: Send $10 USDC → Insurance Wallet           │
+│  ✅ Signed ✅ Submitted ✅ Success                           │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  CREATE PENDING CARD RECORD                                 │
+│  Status: 'processing', card_code: NULL                      │
+│  Store form_data for webhook                                │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  TRANSACTION 2: Bridge USDC → ETH Wallet                    │
+│  ✅ Get quote ✅ Sign ✅ Submit                              │
+│  Status: 'pending' (waits for bridge)                       │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  RETURN: "Card creation initiated. Processing..."          │
+│  User sees card in list with "Processing" status            │
+└─────────────────────────────────────────────────────────────┘
+                       │
+                       │ (Async - Backend)
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  BRIDGE COMPLETES                                           │
+│  USDC arrives at ETH wallet address                         │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  WEBHOOK 1: Payment Received                                │
+│  Event: stablecoin.usdc.received.success                    │
+│  → Finds pending card                                       │
+│  → Calls Cashwyre: /CustomerCard/createCard                 │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  WEBHOOK 2: Card Created                                    │
+│  Event: virtualcard.created.success                         │
+│  → Updates card with card_code                             │
+│  → Status: 'active'                                         │
+│  → Updates balance, last4, expiry                           │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│  CARD READY ✅                                               │
+│  User sees active card with balance                          │
+└─────────────────────────────────────────────────────────────┘
+```
+
+#### Key Points:
+
+1. **Two Transactions:**
+   - Insurance fee ($10 USDC) → Sent immediately, status: 'success'
+   - Card funding (initialAmount) → Bridged, status: 'pending' then 'success'
+
+2. **Form Data Storage:**
+   - Form data stored in `cards.form_data` JSON field
+   - Used by webhook to call Cashwyre createCard API
+   - Ensures data is available when payment arrives
+
+3. **Asynchronous Flow:**
+   - User gets immediate response: "Processing..."
+   - Card creation happens in background via webhooks
+   - Card appears as "active" when webhook completes
+
+4. **Webhook Sequence:**
+   - **Payment webhook** → Calls createCard API
+   - **Card creation webhook** → Updates card with card_code
+
+5. **Error Handling:**
+   - If bridge fails, transaction status remains 'pending'
+   - If webhook fails, card remains in 'processing' status
+   - Can be retried or manually processed
+
+6. **Referral Processing:**
+   - Tracked immediately when card is created
+   - Earnings updated even if card is still processing
+   - Finalized when card becomes active
 
 ### Viewing Card Balance
 
