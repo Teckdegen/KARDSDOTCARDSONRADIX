@@ -1,6 +1,6 @@
 export default function Loading() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0A0E27]">
+    <div className="min-h-screen flex items-center justify-center">
       <div className="text-center fade-in">
         <img 
           src="https://pbs.twimg.com/profile_images/1971138911138152448/skxW4GqN_400x400.jpg" 
