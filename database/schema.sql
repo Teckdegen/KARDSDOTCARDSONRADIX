@@ -182,3 +182,168 @@ CREATE TRIGGER trigger_update_wallets_updated_at
   FOR EACH ROW
   EXECUTE FUNCTION update_updated_at();
 
+-- ============================================
+-- Row Level Security (RLS) Policies
+-- ============================================
+-- 
+-- Note: This application uses custom JWT authentication with service role key.
+-- The service role key bypasses RLS, so backend operations work as expected.
+-- 
+-- These policies provide:
+-- 1. Protection if anon key is used directly
+-- 2. User-level access control if migrating to Supabase Auth
+-- 3. Defense in depth security layer
+--
+-- Service role policies allow full access for backend operations.
+-- User policies (using auth.uid()) will work if Supabase Auth is enabled.
+-- ============================================
+
+-- Enable RLS on all tables
+ALTER TABLE users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wallets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cards ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE referrals ENABLE ROW LEVEL SECURITY;
+ALTER TABLE cashback_claims ENABLE ROW LEVEL SECURITY;
+ALTER TABLE auth_codes ENABLE ROW LEVEL SECURITY;
+ALTER TABLE webhook_logs ENABLE ROW LEVEL SECURITY;
+
+-- ============================================
+-- Users Table Policies
+-- ============================================
+
+-- Users can read their own data
+CREATE POLICY "Users can view own profile"
+  ON users FOR SELECT
+  USING (auth.uid() = id);
+
+-- Users can update their own data
+CREATE POLICY "Users can update own profile"
+  ON users FOR UPDATE
+  USING (auth.uid() = id);
+
+-- Service role can do everything (for backend operations)
+CREATE POLICY "Service role full access to users"
+  ON users FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- ============================================
+-- Wallets Table Policies
+-- ============================================
+
+-- Users can read their own wallet
+CREATE POLICY "Users can view own wallet"
+  ON wallets FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Service role can do everything
+CREATE POLICY "Service role full access to wallets"
+  ON wallets FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- ============================================
+-- Cards Table Policies
+-- ============================================
+
+-- Users can read their own cards
+CREATE POLICY "Users can view own cards"
+  ON cards FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Users can insert their own cards
+CREATE POLICY "Users can create own cards"
+  ON cards FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Users can update their own cards
+CREATE POLICY "Users can update own cards"
+  ON cards FOR UPDATE
+  USING (auth.uid() = user_id);
+
+-- Service role can do everything
+CREATE POLICY "Service role full access to cards"
+  ON cards FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- ============================================
+-- Transactions Table Policies
+-- ============================================
+
+-- Users can read their own transactions
+CREATE POLICY "Users can view own transactions"
+  ON transactions FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Users can insert their own transactions
+CREATE POLICY "Users can create own transactions"
+  ON transactions FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Service role can do everything
+CREATE POLICY "Service role full access to transactions"
+  ON transactions FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- ============================================
+-- Referrals Table Policies
+-- ============================================
+
+-- Users can read referrals where they are the referrer
+CREATE POLICY "Users can view own referrals"
+  ON referrals FOR SELECT
+  USING (auth.uid() = referrer_id);
+
+-- Service role can do everything
+CREATE POLICY "Service role full access to referrals"
+  ON referrals FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- ============================================
+-- Cashback Claims Table Policies
+-- ============================================
+
+-- Users can read their own cashback claims
+CREATE POLICY "Users can view own cashback claims"
+  ON cashback_claims FOR SELECT
+  USING (auth.uid() = user_id);
+
+-- Users can insert their own cashback claims
+CREATE POLICY "Users can create own cashback claims"
+  ON cashback_claims FOR INSERT
+  WITH CHECK (auth.uid() = user_id);
+
+-- Service role can do everything
+CREATE POLICY "Service role full access to cashback claims"
+  ON cashback_claims FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- ============================================
+-- Auth Codes Table Policies
+-- ============================================
+
+-- Users can read auth codes for their own email
+-- Note: This uses email matching since auth codes don't have user_id
+CREATE POLICY "Users can view own auth codes"
+  ON auth_codes FOR SELECT
+  USING (
+    EXISTS (
+      SELECT 1 FROM users
+      WHERE users.email = auth_codes.email
+      AND users.id = auth.uid()
+    )
+  );
+
+-- Service role can do everything (needed for code generation)
+CREATE POLICY "Service role full access to auth codes"
+  ON auth_codes FOR ALL
+  USING (auth.role() = 'service_role');
+
+-- ============================================
+-- Webhook Logs Table Policies
+-- ============================================
+
+-- Only service role can access webhook logs (system table)
+CREATE POLICY "Service role only access to webhook logs"
+  ON webhook_logs FOR ALL
+  USING (auth.role() = 'service_role');
+

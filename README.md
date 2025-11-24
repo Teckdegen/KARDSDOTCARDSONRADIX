@@ -1036,7 +1036,13 @@ Copy `.env.example` to `.env.local` and fill in all values:
 2. Go to SQL Editor → New Query
 3. Copy entire contents of `database/schema.sql`
 4. Paste and run
-5. Verify all tables, indexes, and functions created
+5. Verify all tables, indexes, functions, and RLS policies created
+
+**Note:** The schema includes Row Level Security (RLS) policies:
+- RLS is enabled on all tables
+- Service role key bypasses RLS (used by backend)
+- User-level policies protect data if anon key is used
+- Provides defense in depth security
 
 ### 4. Run Development Server
 ```bash
