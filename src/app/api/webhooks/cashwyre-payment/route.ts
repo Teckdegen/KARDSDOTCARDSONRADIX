@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
         // Find card by wallet address (each card has its own ETH address)
         const { data: pendingCard } = await supabaseAdmin
           .from('cards')
-          .select('user_id, card_wallet_address')
+          .select('*')
           .eq('card_wallet_address', address)
           .eq('status', 'processing')
           .is('card_code', null)
@@ -60,17 +60,9 @@ export async function POST(request: NextRequest) {
           .eq('id', pendingCard.user_id)
           .single();
 
-        if (user && pendingCard) {
+        if (user && pendingCard && pendingCard.form_data) {
           // This is card creation - call createCard API
-          // Get the full card record with form_data
-          const { data: cardWithFormData } = await supabaseAdmin
-            .from('cards')
-            .select('*')
-            .eq('id', pendingCard.id)
-            .single();
-
-          if (cardWithFormData && cardWithFormData.form_data) {
-            const formData = cardWithFormData.form_data;
+          const formData = pendingCard.form_data;
             
             // Call createCard API with stored form data
             await callCashwyreAPI('/CustomerCard/createCard', {
