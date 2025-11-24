@@ -1,0 +1,38 @@
+# Vercel ignore file
+# Files and directories to exclude from Vercel deployment
+
+# Environment files (should be set in Vercel dashboard)
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Development files
+*.log
+.DS_Store
+.vscode/
+.idea/
+
+# Documentation (optional - remove if you want docs deployed)
+# README.md
+
+# Test files
+**/__tests__/**
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+
+# Build artifacts (handled by Vercel)
+.next/
+out/
+dist/
+build/
+
+# Database files (schema is for reference, not deployment)
+database/
+
+# Git files
+.git/
+.gitignore
+

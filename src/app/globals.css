@@ -1,0 +1,300 @@
+@import "tailwindcss";
+
+:root {
+  --background: #0A0E27;
+  --foreground: #FFFFFF;
+  --accent: #F5F5DC;
+  --glass-bg: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-hover: rgba(255, 255, 255, 0.12);
+  --ios-blue: #007AFF;
+  --ios-gray: #8E8E93;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-accent: var(--accent);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--background);
+  background-image: 
+    radial-gradient(at 0% 0%, rgba(245, 245, 220, 0.05) 0px, transparent 50%),
+    radial-gradient(at 100% 100%, rgba(245, 245, 220, 0.03) 0px, transparent 50%);
+  color: var(--foreground);
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* iOS-style Glassmorphism */
+.glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid var(--glass-border);
+  border-radius: 20px;
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 0.5px solid rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  padding: 20px;
+  box-shadow: 
+    0 8px 32px 0 rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+}
+
+.glass-card:active {
+  transform: scale(0.98);
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.glass-input {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(255, 255, 255, 0.2);
+  border-radius: 14px;
+  padding: 14px 16px;
+  color: var(--foreground);
+  font-size: 16px;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  width: 100%;
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.glass-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 
+    0 0 0 4px rgba(245, 245, 220, 0.1),
+    0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.glass-button {
+  background: rgba(245, 245, 220, 0.15);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 0.5px solid rgba(245, 245, 220, 0.25);
+  border-radius: 14px;
+  padding: 14px 24px;
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.glass-button:active::before {
+  left: 100%;
+}
+
+.glass-button:active {
+  transform: scale(0.96);
+  opacity: 0.8;
+}
+
+.glass-button:hover {
+  background: rgba(245, 245, 220, 0.25);
+  border-color: rgba(245, 245, 220, 0.4);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(245, 245, 220, 0.2);
+}
+
+.glass-button-primary {
+  background: linear-gradient(135deg, var(--accent) 0%, #E8E8D3 100%);
+  color: var(--background);
+  border: none;
+  box-shadow: 
+    0 4px 16px rgba(245, 245, 220, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+
+.glass-button-primary:hover {
+  background: linear-gradient(135deg, #E8E8D3 0%, #DDDDC8 100%);
+  box-shadow: 
+    0 6px 24px rgba(245, 245, 220, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+.glass-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  pointer-events: none;
+}
+
+/* iOS-style code input boxes */
+.code-input-box {
+  width: 56px;
+  height: 56px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  text-align: center;
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--foreground);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  caret-color: var(--accent);
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+.code-input-box:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+  box-shadow: 0 0 0 4px rgba(245, 245, 220, 0.1);
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Custom scrollbar - iOS style */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+/* iOS-style selection */
+::selection {
+  background: rgba(245, 245, 220, 0.3);
+  color: var(--foreground);
+}
+
+/* Focus visible - iOS style */
+*:focus-visible {
+  outline: none;
+  border-radius: 8px;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-in {
+  animation: slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-up {
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* iOS-style safe area for notched devices */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+  }
+  
+  .bottom-nav {
+    padding-bottom: max(20px, env(safe-area-inset-bottom));
+  }
+}
+
+/* Prevent text selection on buttons */
+button, .glass-button {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+
+/* iOS-style haptic feedback simulation */
+.glass-button:active,
+.glass-card:active {
+  transition: transform 0.1s;
+}
