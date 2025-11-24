@@ -9,6 +9,7 @@ import CodeInput from '@/components/CodeInput';
 import Logo from '@/components/Logo';
 import Link from 'next/link';
 import { Mail, Lock, ArrowRight } from 'lucide-react';
+import Notification from '@/components/Notification';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,11 +17,11 @@ export default function LoginPage() {
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const handleSendCode = async () => {
     if (!email) {
-      setMessage('Please enter your email');
+      setNotification({ message: 'Please enter your email', type: 'error' });
       return;
     }
 
@@ -35,12 +36,12 @@ export default function LoginPage() {
       const data = await response.json();
       if (data.success) {
         setStep('code');
-        setMessage('Verification code sent to your email');
+        setNotification({ message: 'Code sent! Check your email', type: 'success' });
       } else {
-        setMessage(data.message || 'Failed to send code');
+        setNotification({ message: data.message || 'Failed to send code', type: 'error' });
       }
     } catch (error) {
-      setMessage('An error occurred');
+      setNotification({ message: 'An error occurred', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -48,7 +49,7 @@ export default function LoginPage() {
 
   const handleVerifyCode = async () => {
     if (!code || code.length !== 6) {
-      setMessage('Please enter a valid 6-digit code');
+      setNotification({ message: 'Please enter a valid 6-digit code', type: 'error' });
       return;
     }
 
@@ -65,10 +66,10 @@ export default function LoginPage() {
         localStorage.setItem('token', data.token);
         router.push('/dashboard');
       } else {
-        setMessage(data.message || 'Invalid code');
+        setNotification({ message: data.message || 'Invalid code', type: 'error' });
       }
     } catch (error) {
-      setMessage('An error occurred');
+      setNotification({ message: 'An error occurred', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,7 @@ export default function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <div className="pt-10">
+              <div className="pt-14">
                 <GlassButton
                   onClick={handleSendCode}
                   disabled={loading}
@@ -133,7 +134,7 @@ export default function LoginPage() {
                 />
                 <p className="text-white/30 text-xs md:text-sm text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
-              <div className="pt-10">
+              <div className="pt-14">
                 <GlassButton
                   onClick={handleVerifyCode}
                   disabled={loading || code.length !== 6}
@@ -147,31 +148,17 @@ export default function LoginPage() {
                   )}
                 </GlassButton>
               </div>
-              <button
-                onClick={() => {
-                  setStep('email');
-                  setCode('');
-                }}
-                className="text-white/60 text-sm hover:text-white/80 transition-all duration-300 w-full text-center"
-              >
-                Back to email
-              </button>
-            </div>
-          )}
-
-          {message && (
-            <div className={`mt-5 glass-card p-3 ${
-              message.includes('error') || message.includes('Failed') || message.includes('Invalid') 
-                ? 'bg-red-500/10 border-red-500/30' 
-                : 'bg-green-500/10 border-green-500/30'
-            }`}>
-              <p className={`text-sm text-center ${
-                message.includes('error') || message.includes('Failed') || message.includes('Invalid')
-                  ? 'text-red-400' 
-                  : 'text-green-400'
-              }`}>
-                {message}
-              </p>
+              <div className="pt-6">
+                <button
+                  onClick={() => {
+                    setStep('email');
+                    setCode('');
+                  }}
+                  className="text-white/60 text-sm hover:text-white/80 transition-all duration-300 w-full text-center"
+                >
+                  Back to email
+                </button>
+              </div>
             </div>
           )}
 
@@ -182,6 +169,13 @@ export default function LoginPage() {
           </div>
         </GlassCard>
       </div>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
     </div>
   );
 }

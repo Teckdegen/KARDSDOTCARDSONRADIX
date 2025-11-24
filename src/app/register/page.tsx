@@ -9,6 +9,7 @@ import CodeInput from '@/components/CodeInput';
 import Logo from '@/components/Logo';
 import Link from 'next/link';
 import { User, Mail, Hash, Lock, ArrowRight } from 'lucide-react';
+import Notification from '@/components/Notification';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -21,11 +22,11 @@ export default function RegisterPage() {
   const [code, setCode] = useState('');
   const [step, setStep] = useState<'form' | 'code'>('form');
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState('');
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
 
   const handleRegister = async () => {
     if (!formData.firstName || !formData.lastName || !formData.email || !formData.referralCode) {
-      setMessage('All fields are required');
+      setNotification({ message: 'All fields are required', type: 'error' });
       return;
     }
 
@@ -40,12 +41,12 @@ export default function RegisterPage() {
       const data = await response.json();
       if (data.success) {
         setStep('code');
-        setMessage('Account created! Check your email for verification code.');
+        setNotification({ message: 'Account created! Check your email for verification code.', type: 'success' });
       } else {
-        setMessage(data.message || 'Registration failed');
+        setNotification({ message: data.message || 'Registration failed', type: 'error' });
       }
     } catch (error) {
-      setMessage('An error occurred');
+      setNotification({ message: 'An error occurred', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -53,7 +54,7 @@ export default function RegisterPage() {
 
   const handleVerifyCode = async () => {
     if (!code || code.length !== 6) {
-      setMessage('Please enter a valid 6-digit code');
+      setNotification({ message: 'Please enter a valid 6-digit code', type: 'error' });
       return;
     }
 
@@ -70,10 +71,10 @@ export default function RegisterPage() {
         localStorage.setItem('token', data.token);
         router.push('/dashboard');
       } else {
-        setMessage(data.message || 'Invalid code');
+        setNotification({ message: data.message || 'Invalid code', type: 'error' });
       }
     } catch (error) {
-      setMessage('An error occurred');
+      setNotification({ message: 'An error occurred', type: 'error' });
     } finally {
       setLoading(false);
     }
@@ -138,7 +139,7 @@ export default function RegisterPage() {
                 />
                 <p className="text-white/30 text-xs md:text-sm mt-2">Choose a unique username-style code</p>
               </div>
-              <div className="pt-10">
+              <div className="pt-14">
                 <GlassButton
                   onClick={handleRegister}
                   disabled={loading}
@@ -171,7 +172,7 @@ export default function RegisterPage() {
                 />
                 <p className="text-white/30 text-xs md:text-sm text-center mt-4">Enter the 6-digit code sent to your email</p>
               </div>
-              <div className="pt-10">
+              <div className="pt-14">
                 <GlassButton
                   onClick={handleVerifyCode}
                   disabled={loading || code.length !== 6}
@@ -188,22 +189,6 @@ export default function RegisterPage() {
             </div>
           )}
 
-          {message && (
-            <div className={`mt-5 glass-card p-3 ${
-              message.includes('error') || message.includes('Failed') || message.includes('Invalid') || message.includes('taken') 
-                ? 'bg-red-500/10 border-red-500/30' 
-                : 'bg-green-500/10 border-green-500/30'
-            }`}>
-              <p className={`text-sm text-center ${
-                message.includes('error') || message.includes('Failed') || message.includes('Invalid') || message.includes('taken')
-                  ? 'text-red-400' 
-                  : 'text-green-400'
-              }`}>
-                {message}
-              </p>
-            </div>
-          )}
-
           <div className="mt-8 text-center">
             <Link href="/login" className="text-white/40 text-xs md:text-sm hover:text-white/60 transition-all duration-300 inline-flex items-center gap-2 group">
               Already have an account? <span className="text-[rgba(245,245,220,0.5)] group-hover:text-[rgba(245,245,220,0.7)] group-hover:underline">Login</span>
@@ -211,6 +196,13 @@ export default function RegisterPage() {
           </div>
         </GlassCard>
       </div>
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
     </div>
   );
 }
