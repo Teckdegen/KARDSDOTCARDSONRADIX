@@ -34,26 +34,43 @@ export async function POST(request: NextRequest) {
 
       if (!card) {
         // Check if this is a pending card creation
+        // Find card by wallet address (each card has its own ETH address)
+        const { data: pendingCard } = await supabaseAdmin
+          .from('cards')
+          .select('user_id, card_wallet_address')
+          .eq('card_wallet_address', address)
+          .eq('status', 'processing')
+          .is('card_code', null)
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single();
+
+        if (!pendingCard) {
+          console.error('Pending card not found for address:', address);
+          return NextResponse.json(
+            { success: false, message: 'Pending card not found' },
+            { status: 404 }
+          );
+        }
+
+        // Get user details
         const { data: user } = await supabaseAdmin
           .from('users')
           .select('id, first_name, last_name, email')
-          .eq('eth_deposit_address', address)
+          .eq('id', pendingCard.user_id)
           .single();
 
-        if (user) {
+        if (user && pendingCard) {
           // This is card creation - call createCard API
-          const { data: pendingCard } = await supabaseAdmin
+          // Get the full card record with form_data
+          const { data: cardWithFormData } = await supabaseAdmin
             .from('cards')
             .select('*')
-            .eq('user_id', user.id)
-            .eq('card_wallet_address', address)
-            .eq('status', 'processing')
-            .order('created_at', { ascending: false })
-            .limit(1)
+            .eq('id', pendingCard.id)
             .single();
 
-          if (pendingCard && pendingCard.form_data) {
-            const formData = pendingCard.form_data;
+          if (cardWithFormData && cardWithFormData.form_data) {
+            const formData = cardWithFormData.form_data;
             
             // Call createCard API with stored form data
             await callCashwyreAPI('/CustomerCard/createCard', {

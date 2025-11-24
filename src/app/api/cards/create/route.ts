@@ -79,9 +79,25 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create ETH deposit address if not exists
-    let ethAddress = userData.eth_deposit_address;
-    if (!ethAddress) {
+    // Find unused ETH address from previous cancelled card creations, or create new one
+    // Check for cards with status 'processing' that don't have a card_code yet (cancelled/incomplete)
+    const { data: unusedCard } = await supabaseAdmin
+      .from('cards')
+      .select('card_wallet_address')
+      .eq('user_id', user.userId)
+      .eq('status', 'processing')
+      .is('card_code', null)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    let ethAddress: string;
+    
+    if (unusedCard?.card_wallet_address) {
+      // Reuse unused ETH address from cancelled card creation
+      ethAddress = unusedCard.card_wallet_address;
+    } else {
+      // Create new ETH address for this card
       const cryptoAddressResponse = await callCashwyreAPI('/CustomerCryptoAddress/createCryptoAddress', {
         requestId: generateRequestId(),
         FirstName: userData.first_name,
@@ -93,12 +109,6 @@ export async function POST(request: NextRequest) {
       });
 
       ethAddress = cryptoAddressResponse.data.address;
-      
-      // Update user with ETH address
-      await supabaseAdmin
-        .from('users')
-        .update({ eth_deposit_address: ethAddress })
-        .eq('id', user.userId);
     }
 
     // Charge: $10 insurance + user's initial amount to card

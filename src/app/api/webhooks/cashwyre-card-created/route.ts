@@ -58,13 +58,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      // Find pending card by ETH address
+      // Find pending card by user and status
+      // Each card has its own ETH address, so we find the most recent processing card
       const { data: card } = await supabaseAdmin
         .from('cards')
         .select('*')
         .eq('user_id', user.id)
-        .eq('card_wallet_address', user.eth_deposit_address)
         .eq('status', 'processing')
+        .is('card_code', null)
         .order('created_at', { ascending: false })
         .limit(1)
         .single();
