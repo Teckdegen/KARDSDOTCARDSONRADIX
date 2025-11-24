@@ -6,11 +6,11 @@ import { generateRequestId } from '@/lib/utils';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { cardCode: string } }
+  { params }: { params: Promise<{ cardCode: string }> }
 ) {
   try {
     const user = requireAuth(request);
-    const { cardCode } = params;
+    const { cardCode } = await params;
 
     // Verify user owns the card
     const { data: card } = await supabaseAdmin

@@ -9,11 +9,11 @@ import { checkXRDForBridge, getUSDCBalance } from '@/lib/radix-rpc';
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { cardCode: string } }
+  { params }: { params: Promise<{ cardCode: string }> }
 ) {
   try {
     const user = requireAuth(request);
-    const { cardCode } = params;
+    const { cardCode } = await params;
     const { amount } = await request.json();
 
     // Validation
