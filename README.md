@@ -394,9 +394,11 @@ The card creation process is a multi-step asynchronous flow that involves blockc
 ```
 User fills form with:
 - Personal info (name, phone, DOB, address)
-- Card preferences (name, type, brand)
+- Card name (name to display on card)
 - Initial amount (minimum $15 USDC)
 - Optional referral code
+
+Note: Card type is always "virtual" and brand is always "visa" (hardcoded)
 ```
 
 **2. Validation & Checks**
@@ -1404,6 +1406,7 @@ All requests use Bearer token authentication with `CASHWYRE_SECRET_KEY`.
   "amountInUSD": 15
 }
 ```
+**Note:** `cardType` is always `"virtual"` and `cardBrand` is always `"visa"` (hardcoded in backend)
 
 #### 3. **Top Up Card**
 **Endpoint:** `POST /CustomerCard/topup`  
@@ -1518,6 +1521,8 @@ All API calls include automatic retry with exponential backoff (3 attempts).
   - Minimum $15 USDC initial amount
   - $10 USDC insurance fee (automatically sent to team wallet)
   - ~410 XRD for bridge transaction
+- **Card type is always "virtual"** - Hardcoded in backend
+- **Card brand is always "visa"** - Hardcoded in backend
 - **Each card gets its own unique ETH address** - Created via Cashwyre API
 - **Unused addresses are reused** - If user cancels card creation, the ETH address remains unused and is automatically reused for the next card creation attempt
 - **Card creation API is called AFTER webhook receives payment** - Not during initial request

@@ -17,14 +17,16 @@ export async function POST(request: NextRequest) {
       homeAddressNumber,
       homeAddress,
       cardName,
-      cardType,
-      cardBrand,
       referralCode,
       initialAmount,
     } = await request.json();
 
+    // Card type and brand are always fixed
+    const cardType = 'virtual';
+    const cardBrand = 'visa';
+
     // Validation
-    if (!phoneCode || !phoneNumber || !dateOfBirth || !homeAddressNumber || !homeAddress || !cardName || !cardType || !cardBrand) {
+    if (!phoneCode || !phoneNumber || !dateOfBirth || !homeAddressNumber || !homeAddress || !cardName) {
       return NextResponse.json(
         { success: false, message: 'All card details are required' },
         { status: 400 }
