@@ -16,8 +16,20 @@ try {
 
 const NETWORK_ID = process.env.RADIX_NETWORK_ID || 'mainnet';
 
+// Helper to get network ID enum
+function getNetworkIdEnum(): any {
+  if (!RETK) return null;
+  try {
+    // RETK v1.0.5 uses NetworkId enum
+    return RETK.NetworkId[NETWORK_ID.toUpperCase()] || RETK.NetworkId.MAINNET;
+  } catch {
+    return RETK.NetworkId?.Mainnet || RETK.NetworkId?.MAINNET || 1;
+  }
+}
+
 /**
  * Sign a transaction manifest with a private key
+ * Uses RETK to properly build, sign, and compile the transaction
  */
 export async function signTransactionManifest(
   manifest: string,
@@ -25,32 +37,57 @@ export async function signTransactionManifest(
 ): Promise<string> {
   try {
     if (!RETK) {
-      // Fallback: return manifest as hex (for testing)
-      console.warn('RETK not available, using placeholder signing');
-      return Buffer.from(manifest).toString('hex');
+      throw new Error('Radix Engine Toolkit not available');
     }
 
-    // RETK API structure (adjust based on actual v1.0.5 API)
-    // The exact API may vary - check RETK documentation
-    try {
-      // Try to use RETK's transaction building and signing
-      // This is a template - adjust based on actual RETK v1.0.5 API
-      const signed = await RETK.TransactionBuilder
-        ?.new()
-        ?.manifest(manifest)
-        ?.sign(privateKey, NETWORK_ID)
-        ?.toHex();
-      
-      if (signed) return signed;
-    } catch (retkError) {
-      console.warn('RETK signing failed, using fallback:', retkError);
-    }
+    // Parse private key - RETK stores private keys as hex strings
+    // Convert hex string to Uint8Array and create Ed25519 private key
+    const crypto = await import('crypto');
+    
+    // Remove prefix if present
+    const hexKey = privateKey.replace(/^private_key_/, '');
+    
+    // Convert hex string to Buffer then to Uint8Array for RETK
+    const buffer = Buffer.from(hexKey, 'hex');
+    const keyBytes = new Uint8Array(buffer);
+    
+    // Create Ed25519 private key from bytes using constructor
+    const privateKeyObj = new RETK.PrivateKey.Ed25519(keyBytes);
+    
+    const publicKey = privateKeyObj.publicKey();
+    const networkId = getNetworkIdEnum();
 
-    // Fallback: return manifest as hex
-    return Buffer.from(manifest).toString('hex');
+    // Build transaction from manifest using RETK
+    const transactionBuilder = await RETK.TransactionBuilder.new();
+    
+    // Set transaction header
+    const headerStep = await transactionBuilder.header({
+      networkId: networkId,
+      startEpochInclusive: 0, // Will be set by network
+      endEpochExclusive: 100000, // Will be set by network
+      nonce: 0, // Will be set by network
+      notaryPublicKey: publicKey,
+      notaryIsSignatory: true,
+      tipPercentage: 0,
+    });
+
+    // Set manifest
+    const manifestStep = await headerStep.manifest(manifest);
+
+    // Sign the transaction
+    const signedStep = await manifestStep.sign(privateKeyObj);
+
+    // Compile to notarized transaction
+    const notarizedTx = await signedStep.notarize(privateKeyObj);
+
+    // Convert to hex string for submission
+    const compiledTx = RETK.CompiledNotarizedTransaction.fromNotarizedTransaction(notarizedTx);
+    const hexString = compiledTx.toHex();
+
+    return hexString;
   } catch (error) {
-    console.error('Error signing manifest:', error);
-    throw new Error(`Failed to sign transaction: ${error}`);
+    console.error('Error signing manifest with RETK:', error);
+    throw new Error(`Failed to sign transaction: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -80,6 +117,7 @@ export async function signAndSubmitManifest(
 /**
  * Build a simple transfer manifest
  * For sending USDC from one address to another
+ * Uses RETK ManifestBuilder for proper manifest construction
  */
 export async function buildTransferManifest(
   fromAddress: string,
@@ -91,27 +129,53 @@ export async function buildTransferManifest(
     // Convert amount to smallest unit (6 decimals for USDC)
     const amountInSmallestUnit = BigInt(Math.floor(amount * Math.pow(10, USDC_DECIMALS)));
 
-    // Build manifest using Radix Engine Toolkit if available
+    // Build manifest using Radix Engine Toolkit
     if (RETK && RETK.ManifestBuilder) {
       try {
-        const manifest = RETK.ManifestBuilder
-          .new()
-          .callMethod(fromAddress, 'withdraw', [amountInSmallestUnit.toString(), resourceAddress])
-          .callMethod(toAddress, 'deposit', ['Bucket'])
-          .build()
-          .toString();
+        const manifestBuilder = new RETK.ManifestBuilder();
         
-        return manifest;
+        // Withdraw from sender's account
+        // callMethod(address, methodName, args) - args are passed as strings/values
+        manifestBuilder.callMethod(
+          fromAddress,
+          'withdraw',
+          [
+            amountInSmallestUnit.toString(),
+            resourceAddress,
+          ]
+        );
+        
+        // Take from worktop
+        manifestBuilder.takeFromWorktop(
+          amountInSmallestUnit.toString(),
+          resourceAddress,
+          'bucket'
+        );
+        
+        // Deposit to recipient's account
+        manifestBuilder.callMethod(
+          toAddress,
+          'deposit',
+          ['bucket']
+        );
+        
+        // Build and convert to string
+        const manifest = manifestBuilder.build();
+        const manifestString = manifest.toString();
+        
+        return manifestString;
       } catch (retkError) {
-        console.warn('RETK manifest building failed, using fallback:', retkError);
+        console.error('RETK manifest building error:', retkError);
+        throw retkError;
       }
     }
 
     // Fallback: Build manifest string manually (Radix manifest format)
-    // Format: CALL_METHOD <address> <method> <args>; ...
+    // This is a simplified version - should use RETK in production
+    console.warn('Using fallback manifest builder - RETK not available');
     return `CALL_METHOD ${fromAddress} withdraw ${amountInSmallestUnit.toString()} ${resourceAddress}; CALL_METHOD ${toAddress} deposit;`;
   } catch (error) {
     console.error('Error building transfer manifest:', error);
-    throw new Error(`Failed to build transfer manifest: ${error}`);
+    throw new Error(`Failed to build transfer manifest: ${error instanceof Error ? error.message : String(error)}`);
   }
 }

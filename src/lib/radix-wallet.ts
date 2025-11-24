@@ -16,8 +16,15 @@ export interface RadixWallet {
  */
 export async function generateRadixWallet(): Promise<RadixWallet> {
   try {
-    // Generate a new Ed25519 private key
-    const privateKey = PrivateKey.generateNew();
+    // Generate random bytes for private key (32 bytes for Ed25519)
+    const crypto = await import('crypto');
+    const randomBytes = crypto.randomBytes(32);
+    
+    // Convert Buffer to Uint8Array for RETK
+    const keyBytes = new Uint8Array(randomBytes);
+    
+    // Create Ed25519 private key from random bytes using constructor
+    const privateKey = new PrivateKey.Ed25519(keyBytes);
     
     // Derive public key from private key
     const publicKey = privateKey.publicKey();
@@ -32,7 +39,7 @@ export async function generateRadixWallet(): Promise<RadixWallet> {
     };
   } catch (error) {
     console.error('Error generating Radix wallet:', error);
-    throw new Error(`Failed to generate Radix wallet: ${error}`);
+    throw new Error(`Failed to generate Radix wallet: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
