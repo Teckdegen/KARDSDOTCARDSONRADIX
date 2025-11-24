@@ -64,33 +64,32 @@ export async function POST(request: NextRequest) {
           // This is card creation - call createCard API
           const formData = pendingCard.form_data;
             
-            // Call createCard API with stored form data
-            await callCashwyreAPI('/CustomerCard/createCard', {
-              requestId: generateRequestId(),
-              firstName: user.first_name,
-              lastName: user.last_name,
-              email: user.email,
-              phoneCode: formData.phoneCode,
-              phoneNumber: formData.phoneNumber,
-              dateOfBirth: formData.dateOfBirth,
-              homeAddressNumber: formData.homeAddressNumber,
-              homeAddress: formData.homeAddress,
-              cardName: formData.cardName,
-              cardType: formData.cardType,
-              cardBrand: formData.cardBrand,
-              amountInUSD: formData.initialAmount || 15, // The amount user wants to fund card with
-            });
+          // Call createCard API with stored form data
+          await callCashwyreAPI('/CustomerCard/createCard', {
+            requestId: generateRequestId(),
+            firstName: user.first_name,
+            lastName: user.last_name,
+            email: user.email,
+            phoneCode: formData.phoneCode,
+            phoneNumber: formData.phoneNumber,
+            dateOfBirth: formData.dateOfBirth,
+            homeAddressNumber: formData.homeAddressNumber,
+            homeAddress: formData.homeAddress,
+            cardName: formData.cardName,
+            cardType: formData.cardType,
+            cardBrand: formData.cardBrand,
+            amountInUSD: formData.initialAmount || 15, // The amount user wants to fund card with
+          });
 
-            await supabaseAdmin
-              .from('webhook_logs')
-              .update({ processed: true })
-              .eq('event_type', eventType);
+          await supabaseAdmin
+            .from('webhook_logs')
+            .update({ processed: true })
+            .eq('event_type', eventType);
 
-            return NextResponse.json({
-              success: true,
-              message: 'Card creation initiated',
-            });
-          }
+          return NextResponse.json({
+            success: true,
+            message: 'Card creation initiated',
+          });
         }
 
         console.error('Card not found for address:', address);
@@ -161,4 +160,3 @@ export async function POST(request: NextRequest) {
     );
   }
 }
-
