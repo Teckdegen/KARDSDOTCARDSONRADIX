@@ -73,9 +73,14 @@ export async function getXRDBalance(address: string): Promise<number> {
     const data = await response.json();
     
     // Extract XRD balance from vaults
+    // XRD resource address on Radix mainnet: resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrdx
+    // XRD is the native token, so we look for the XRD resource address
     if (data.items && data.items[0]?.fungible_vaults) {
+      // XRD resource address pattern: starts with resource_rdx1tkn
       const xrdVault = data.items[0].fungible_vaults.find(
-        (vault: any) => vault.resource_address?.includes('xrd') || vault.resource_address?.includes('XRD')
+        (vault: any) => vault.resource_address?.startsWith('resource_rdx1tkn') || 
+                       vault.resource_address?.toLowerCase().includes('xrd') ||
+                       vault.resource_address === 'resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrdx'
       );
       
       if (xrdVault?.amount) {

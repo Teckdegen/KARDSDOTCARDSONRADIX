@@ -44,12 +44,33 @@ export async function signTransactionManifest(
     // Convert hex string to Uint8Array and create Ed25519 private key
     const crypto = await import('crypto');
     
-    // Remove prefix if present
-    const hexKey = privateKey.replace(/^private_key_/, '');
+    let keyBytes: Uint8Array;
     
-    // Convert hex string to Buffer then to Uint8Array for RETK
-    const buffer = Buffer.from(hexKey, 'hex');
-    const keyBytes = new Uint8Array(buffer);
+    // Handle different private key formats
+    if (privateKey.startsWith('private_key_')) {
+      // Remove prefix if present
+      const hexKey = privateKey.replace(/^private_key_/, '');
+      const buffer = Buffer.from(hexKey, 'hex');
+      keyBytes = new Uint8Array(buffer);
+    } else if (privateKey.length === 64) {
+      // Assume it's a hex string (32 bytes = 64 hex chars)
+      const buffer = Buffer.from(privateKey, 'hex');
+      keyBytes = new Uint8Array(buffer);
+    } else {
+      // Try to parse as hex directly
+      try {
+        const buffer = Buffer.from(privateKey, 'hex');
+        keyBytes = new Uint8Array(buffer);
+      } catch {
+        // If not hex, assume it's already bytes (base64 or other format)
+        throw new Error('Invalid private key format. Expected hex string.');
+      }
+    }
+    
+    // Validate key length (Ed25519 requires 32 bytes)
+    if (keyBytes.length !== 32) {
+      throw new Error(`Invalid private key length. Expected 32 bytes, got ${keyBytes.length}`);
+    }
     
     // Create Ed25519 private key from bytes using constructor
     const privateKeyObj = new RETK.PrivateKey.Ed25519(keyBytes);
@@ -139,33 +160,30 @@ export async function buildTransferManifest(
           ? await RETK.ManifestBuilder.new()
           : new RETK.ManifestBuilder();
         
-        // Withdraw from sender's account
-        // callMethod returns a builder for chaining
-        const withdrawStep = manifestBuilder.callMethod(
-          fromAddress,
-          'withdraw',
-          [
+        // Build manifest: withdraw -> take from worktop -> deposit
+        // RETK methods typically return the builder itself for chaining
+        manifestBuilder
+          .callMethod(
+            fromAddress,
+            'withdraw',
+            [
+              amountInSmallestUnit.toString(),
+              resourceAddress,
+            ]
+          )
+          .takeFromWorktop(
             amountInSmallestUnit.toString(),
             resourceAddress,
-          ]
-        );
-        
-        // Take from worktop - chain from withdraw step
-        const worktopStep = withdrawStep.takeFromWorktop(
-          amountInSmallestUnit.toString(),
-          resourceAddress,
-          'bucket'
-        );
-        
-        // Deposit to recipient's account - chain from worktop step
-        const depositStep = worktopStep.callMethod(
-          toAddress,
-          'deposit',
-          ['bucket']
-        );
+            'bucket'
+          )
+          .callMethod(
+            toAddress,
+            'deposit',
+            ['bucket']
+          );
         
         // Build and convert to string
-        const manifest = depositStep.build();
+        const manifest = manifestBuilder.build();
         const manifestString = manifest.toString();
         
         return manifestString;
