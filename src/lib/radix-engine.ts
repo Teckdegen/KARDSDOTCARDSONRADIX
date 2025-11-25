@@ -61,13 +61,15 @@ export async function signTransactionManifest(
     const transactionBuilder = await RETK.TransactionBuilder.new();
     
     // Set transaction header
+    // Note: For notarization, typically you'd use a separate notary key or let the network handle it
+    // Using the same key as signatory is valid for self-notarized transactions
     const headerStep = await transactionBuilder.header({
       networkId: networkId,
       startEpochInclusive: 0, // Will be set by network
       endEpochExclusive: 100000, // Will be set by network
       nonce: 0, // Will be set by network
-      notaryPublicKey: publicKey,
-      notaryIsSignatory: true,
+      notaryPublicKey: publicKey, // Using signer's key as notary (self-notarized)
+      notaryIsSignatory: true, // Signer is also the notary
       tipPercentage: 0,
     });
 
@@ -132,11 +134,14 @@ export async function buildTransferManifest(
     // Build manifest using Radix Engine Toolkit
     if (RETK && RETK.ManifestBuilder) {
       try {
-        const manifestBuilder = new RETK.ManifestBuilder();
+        // ManifestBuilder should use .new() static method (similar to TransactionBuilder)
+        const manifestBuilder = RETK.ManifestBuilder.new 
+          ? await RETK.ManifestBuilder.new()
+          : new RETK.ManifestBuilder();
         
         // Withdraw from sender's account
-        // callMethod(address, methodName, args) - args are passed as strings/values
-        manifestBuilder.callMethod(
+        // callMethod returns a builder for chaining
+        const withdrawStep = manifestBuilder.callMethod(
           fromAddress,
           'withdraw',
           [
@@ -145,22 +150,22 @@ export async function buildTransferManifest(
           ]
         );
         
-        // Take from worktop
-        manifestBuilder.takeFromWorktop(
+        // Take from worktop - chain from withdraw step
+        const worktopStep = withdrawStep.takeFromWorktop(
           amountInSmallestUnit.toString(),
           resourceAddress,
           'bucket'
         );
         
-        // Deposit to recipient's account
-        manifestBuilder.callMethod(
+        // Deposit to recipient's account - chain from worktop step
+        const depositStep = worktopStep.callMethod(
           toAddress,
           'deposit',
           ['bucket']
         );
         
         // Build and convert to string
-        const manifest = manifestBuilder.build();
+        const manifest = depositStep.build();
         const manifestString = manifest.toString();
         
         return manifestString;
