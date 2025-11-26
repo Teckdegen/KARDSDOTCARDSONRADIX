@@ -379,8 +379,32 @@ html {
   }
   
   .bottom-nav {
-    padding-bottom: max(20px, env(safe-area-inset-bottom));
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
+}
+
+/* Ensure content scrolls above nav bar */
+.min-h-screen {
+  padding-bottom: 70px;
+}
+
+/* Add spacing between elements */
+.space-y-3 > * + * {
+  margin-top: 0.75rem;
+}
+
+.space-y-4 > * + * {
+  margin-top: 1rem;
+}
+
+/* Ensure all content can scroll above nav bar */
+body {
+  overflow-y: auto;
+}
+
+/* Make nav bar thinner */
+.bottom-nav .glass-card {
+  padding: 0.5rem 1rem !important;
 }
 
 /* Prevent text selection on buttons */

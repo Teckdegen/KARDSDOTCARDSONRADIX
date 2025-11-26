@@ -1,5 +1,4 @@
 import React from 'react';
-import Logo from './Logo';
 import { ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -30,32 +29,28 @@ export default function Header({
 
   if (centered) {
     return (
-      <div className="flex items-center justify-center gap-3 pt-8 pb-6 fade-in">
-        <Logo size={40} className="rounded-2xl" />
+      <div className="flex items-center justify-center gap-2 pt-6 pb-4 fade-in">
         {title && (
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>{title}</h1>
-          </div>
+          <h1 className="text-lg font-bold" style={{ color: '#F5F5DC' }}>{title}</h1>
         )}
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-between pt-8 pb-6 fade-in">
-      <div className="flex items-center gap-3">
+    <div className="flex items-center justify-between pt-6 pb-4 fade-in">
+      <div className="flex items-center gap-2">
         {showBack && (
           <button
             onClick={handleBack}
-            className="w-10 h-10 rounded-xl flex items-center justify-center glass-card hover:bg-white/10 transition-colors"
+            className="w-5 h-5 rounded-md flex items-center justify-center glass-card hover:bg-white/10 transition-colors"
             aria-label="Go back"
           >
-            <ArrowLeft size={20} className="text-white/70" />
+            <ArrowLeft size={10} className="text-white/70" />
           </button>
         )}
-        <Logo size={32} className="rounded-xl" />
         {title && (
-          <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>{title}</h1>
+          <h1 className="text-lg font-bold" style={{ color: '#F5F5DC' }}>{title}</h1>
         )}
       </div>
       {rightAction && (

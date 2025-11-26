@@ -128,13 +128,13 @@ export default function DashboardPage() {
           </GlassCard>
         )}
 
-        <div className="grid grid-cols-2 gap-2 fade-in">
+        <div className="grid grid-cols-2 gap-3 fade-in mt-1">
           <GlassCard 
             className="text-center cursor-pointer group p-2"
             onClick={() => setShowSendModal(true)}
           >
-            <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500/10 mb-1.5 group-hover:bg-red-500/20 transition-colors">
-              <Send size={14} className="text-red-400" />
+            <div className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-red-500/10 mb-1.5 group-hover:bg-red-500/20 transition-colors">
+              <Send size={12} className="text-red-400" />
             </div>
             <p className="text-xs font-medium">Send</p>
           </GlassCard>
@@ -142,8 +142,8 @@ export default function DashboardPage() {
             className="text-center cursor-pointer group p-2"
             onClick={() => setShowReceiveModal(true)}
           >
-            <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-green-500/10 mb-1.5 group-hover:bg-green-500/20 transition-colors">
-              <QrCode size={14} className="text-green-400" />
+            <div className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-green-500/10 mb-1.5 group-hover:bg-green-500/20 transition-colors">
+              <QrCode size={12} className="text-green-400" />
             </div>
             <p className="text-xs font-medium">Receive</p>
           </GlassCard>
@@ -152,7 +152,7 @@ export default function DashboardPage() {
         <GlassCard className="fade-in p-2">
           <p className="text-white/70 text-xs mb-1.5 font-medium">Wallet Address</p>
           <div className="glass-card bg-white/5 p-1.5 rounded-lg">
-            <p className="text-xs break-all font-mono text-white/80 leading-tight">{address}</p>
+            <p className="text-[10px] break-all font-mono text-white/80 leading-tight">{address}</p>
           </div>
         </GlassCard>
 

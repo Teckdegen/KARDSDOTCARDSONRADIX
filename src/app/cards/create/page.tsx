@@ -70,8 +70,8 @@ export default function CreateCardPage() {
   const totalAmount = 25; // $10 insurance + $15 to card
 
   return (
-    <div className="min-h-screen pb-20 p-4">
-      <div className="w-full max-w-4xl mx-auto space-y-3">
+    <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Create Card" showBack backUrl="/cards" />
 
         <form onSubmit={handleSubmit}>

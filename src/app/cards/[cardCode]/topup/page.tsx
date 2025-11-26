@@ -68,8 +68,8 @@ export default function TopUpPage() {
   const cardAmount = amount ? Math.max(0, parseFloat(amount) - processingFee) : 0;
 
   return (
-    <div className="min-h-screen pb-20 p-4">
-      <div className="w-full max-w-4xl mx-auto space-y-3">
+    <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Top Up Card" showBack backUrl={`/cards/${cardCode}`} />
 
         <form onSubmit={handleTopUp}>

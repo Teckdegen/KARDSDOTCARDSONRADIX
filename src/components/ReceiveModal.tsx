@@ -48,30 +48,30 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/60 hover:text-white transition-all duration-300 hover:rotate-90"
+          className="absolute top-4 right-4 text-white/60 hover:text-white transition-all duration-300 hover:rotate-90"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#F5F5DC]/10 mb-4">
-            <QrCode size={32} style={{ color: '#F5F5DC' }} />
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#F5F5DC]/10 mb-3">
+            <QrCode size={24} style={{ color: '#F5F5DC' }} />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Receive Radix</h2>
-          <p className="text-white/60 text-sm">Share this address to receive funds</p>
+          <h2 className="text-lg font-bold mb-1">Receive Radix</h2>
+          <p className="text-white/60 text-xs">Share this address to receive funds</p>
         </div>
 
         {qrCode && (
-          <div className="flex justify-center mb-6">
-            <div className="glass-card p-6 rounded-3xl">
-              <img src={qrCode} alt="QR Code" className="w-64 h-64" />
+          <div className="flex justify-center mb-4">
+            <div className="glass-card p-4 rounded-2xl">
+              <img src={qrCode} alt="QR Code" className="w-48 h-48" />
             </div>
           </div>
         )}
 
-        <GlassCard className="bg-white/5 mb-4">
-          <p className="text-white/70 text-xs mb-3 font-medium">Wallet Address</p>
-          <p className="text-xs break-all font-mono mb-4 leading-relaxed text-white/80">{address}</p>
+        <GlassCard className="bg-white/5">
+          <p className="text-white/70 text-xs mb-2 font-medium">Wallet Address</p>
+          <p className="text-xs break-all font-mono mb-3 leading-relaxed text-white/80">{address}</p>
           <GlassButton
             variant="secondary"
             onClick={copyAddress}
@@ -79,12 +79,12 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
           >
             {copied ? (
               <>
-                <Check size={16} />
+                <Check size={14} />
                 Copied!
               </>
             ) : (
               <>
-                <Copy size={16} />
+                <Copy size={14} />
                 Copy Address
               </>
             )}

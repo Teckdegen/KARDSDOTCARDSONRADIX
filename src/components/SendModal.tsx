@@ -83,22 +83,22 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
       >
         <button
           onClick={onClose}
-          className="absolute top-5 right-5 text-white/60 hover:text-white transition-all duration-300 hover:rotate-90"
+          className="absolute top-4 right-4 text-white/60 hover:text-white transition-all duration-300 hover:rotate-90"
         >
-          <X size={24} />
+          <X size={20} />
         </button>
 
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#F5F5DC]/10 mb-4">
-            <Send size={32} style={{ color: '#F5F5DC' }} />
+        <div className="text-center mb-4">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#F5F5DC]/10 mb-3">
+            <Send size={24} style={{ color: '#F5F5DC' }} />
           </div>
-          <h2 className="text-lg font-bold mb-2">Send USDC</h2>
+          <h2 className="text-base font-bold mb-1">Send USDC</h2>
           <p className="text-white/60 text-xs">Available: <span className="text-[#F5F5DC] font-semibold">{balance.toFixed(2)} USDC</span></p>
         </div>
 
-        <form onSubmit={handleSend} className="space-y-5">
+        <form onSubmit={handleSend} className="space-y-4">
           <div>
-            <label className="text-white/70 text-sm mb-2 block font-medium">Recipient Address</label>
+            <label className="text-white/70 text-xs mb-1.5 block font-medium">Recipient Address</label>
             <GlassInput
               placeholder="account_rdx..."
               value={recipientAddress}
@@ -108,7 +108,7 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
           </div>
 
           <div>
-            <label className="text-white/70 text-xs mb-2 block font-medium">Amount (USDC)</label>
+            <label className="text-white/70 text-xs mb-1.5 block font-medium">Amount (USDC)</label>
             <GlassInput
               type="number"
               placeholder="0.00"
@@ -145,7 +145,7 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
               <>Sending...</>
             ) : (
               <>
-                Send <ArrowRight size={18} />
+                Send <ArrowRight size={14} />
               </>
             )}
           </GlassButton>
