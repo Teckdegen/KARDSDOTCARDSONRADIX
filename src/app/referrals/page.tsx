@@ -95,7 +95,7 @@ export default function ReferralsPage() {
       });
 
       const data = await response.json();
-      if (data.success) {
+      if (data.success && stats) {
         setMessage(`Successfully claimed $${stats.weeklyEarnings.toFixed(2)}!`);
         fetchData();
       } else {
