@@ -90,88 +90,85 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen pb-20 pt-4 p-3 flex items-start justify-center">
-      <div className="w-full max-w-2xl mx-auto space-y-4">
+      <div className="w-full max-w-2xl mx-auto space-y-6">
         <Header title="Dashboard" showBack={false} />
 
-        {/* Wallet balance + send - reduced size */}
-        <GlassCard className="glass-card-reduced p-4">
-          <div className="text-center">
-            <p className="text-white/60 text-xs mb-1">Total USDC Balance</p>
-            <div className="text-2xl font-bold mb-1">${balance.toFixed(2)}</div>
-            <p className="text-white/50 text-xs">
-              XRD for gas:{' '}
-              <span className="font-semibold">{xrdBalance.toFixed(4)} XRD</span>
-            </p>
-          </div>
-
-          {address && (
-            <div className="glass-card bg-white/5 p-2 rounded-xl text-xs text-white/70 break-all mt-3">
-              <p className="mb-1 text-[9px] uppercase tracking-wide text-white/40">
-                Radix Wallet
+        {/* Wallet balance + send - larger and fits screen better */}
+        <GlassCard className="glass-card-reduced p-6 full-screen-card">
+          <div className="flex flex-col h-full">
+            <div className="text-center flex-1 flex flex-col justify-center">
+              <p className="text-white/60 text-sm mb-2">Total USDC Balance</p>
+              <div className="text-4xl font-bold mb-2">${balance.toFixed(2)}</div>
+              <p className="text-white/50 text-sm">
+                XRD for gas:{' '}
+                <span className="font-semibold">{xrdBalance.toFixed(4)} XRD</span>
               </p>
-              <p className="font-mono text-[10px]">{address}</p>
             </div>
-          )}
 
-          <div className="flex gap-2 pt-3">
-            <GlassButton
-              variant="primary"
-              className="flex-1 flex items-center justify-center gap-1 py-2"
-              onClick={() => setSendOpen(true)}
-            >
-              <ArrowUpRight size={14} />
-              <span className="text-xs">Send</span>
-            </GlassButton>
-            <GlassButton
-              variant="secondary"
-              className="flex-1 flex items-center justify-center gap-1 py-2 text-xs"
-              onClick={() => setReceiveOpen(true)}
-            >
-              <Download size={14} />
-              Receive
-            </GlassButton>
+            <div className="flex gap-4 pt-4">
+              <GlassButton
+                variant="primary"
+                className="flex-1 flex items-center justify-center gap-2 py-4"
+                onClick={() => setSendOpen(true)}
+              >
+                <ArrowUpRight size={18} />
+                <span className="text-lg">Send</span>
+              </GlassButton>
+              <GlassButton
+                variant="secondary"
+                className="flex-1 flex items-center justify-center gap-2 py-4 text-lg"
+                onClick={() => setReceiveOpen(true)}
+              >
+                <Download size={18} />
+                Receive
+              </GlassButton>
+            </div>
           </div>
         </GlassCard>
 
-        {/* Wallet transactions list - reduced size */}
-        <GlassCard className="glass-card-reduced p-4">
-          <h2 className="text-sm font-semibold mb-3">Wallet Activity</h2>
-          {transactions.length === 0 ? (
-            <p className="text-white/60 text-sm text-center py-3">No wallet transactions yet</p>
-          ) : (
-            <div className="space-y-2">
-              {transactions.map((tx) => {
-                const isSend = tx.type === 'radix_send';
-                return (
-                  <div
-                    key={tx.id || tx.hash}
-                    className="flex items-center justify-between pb-2 border-b border-white/10 last:border-0"
-                  >
-                    <div className="flex-1 pr-2">
-                      <p className="text-xs font-medium">
-                        {tx.description || (isSend ? 'Sent USDC' : 'Received USDC')}
-                      </p>
-                      <p className="text-white/60 text-[9px]">
-                        {tx.created_at
-                          ? new Date(tx.created_at).toLocaleString()
-                          : tx.hash.slice(0, 10) + '...'}
-                      </p>
+        {/* Wallet transactions list - extends to bottom with scroll */}
+        <GlassCard className="glass-card-reduced p-6 flex-1 flex flex-col transaction-card">
+          <h2 className="text-lg font-semibold mb-4">Wallet Activity</h2>
+          <div className="flex-1 overflow-y-auto">
+            {transactions.length === 0 ? (
+              <div className="flex items-center justify-center h-full">
+                <p className="text-white/60 text-lg text-center">No wallet transactions yet</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {transactions.map((tx) => {
+                  const isSend = tx.type === 'radix_send';
+                  return (
+                    <div
+                      key={tx.id || tx.hash}
+                      className="flex items-center justify-between pb-4 border-b border-white/10 last:border-0"
+                    >
+                      <div className="flex-1 pr-4">
+                        <p className="text-base font-medium">
+                          {tx.description || (isSend ? 'Sent USDC' : 'Received USDC')}
+                        </p>
+                        <p className="text-white/60 text-sm">
+                          {tx.created_at
+                            ? new Date(tx.created_at).toLocaleString()
+                            : tx.hash.slice(0, 10) + '...'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p
+                          className={`text-base font-semibold ${
+                            isSend ? 'text-red-400' : 'text-green-400'
+                          }`}
+                        >
+                          {isSend ? '-' : '+'}${tx.amount.toFixed(2)}
+                        </p>
+                        <p className="text-white/60 text-sm capitalize">{tx.status}</p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p
-                        className={`text-xs font-semibold ${
-                          isSend ? 'text-red-400' : 'text-green-400'
-                        }`}
-                      >
-                        {isSend ? '-' : '+'}${tx.amount.toFixed(2)}
-                      </p>
-                      <p className="text-white/60 text-[9px] capitalize">{tx.status}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
+                  );
+                })}
+              </div>
+            )}
+          </div>
         </GlassCard>
 
       </div>

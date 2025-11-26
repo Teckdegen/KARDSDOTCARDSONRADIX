@@ -56,7 +56,7 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   -webkit-tap-highlight-color: transparent;
-  font-size: 14px;
+  font-size: 16px;
   position: relative;
 }
 
@@ -76,7 +76,7 @@ body::before {
 
 @media (min-width: 768px) {
   body {
-    font-size: 16px;
+    font-size: 18px;
   }
 }
 
@@ -98,7 +98,7 @@ body::before {
   -webkit-backdrop-filter: blur(60px) saturate(180%);
   border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 32px;
-  padding: 24px;
+  padding: 32px;
   box-shadow: 
     0 20px 60px 0 rgba(0, 0, 0, 0.4),
     0 8px 24px 0 rgba(0, 0, 0, 0.3),
@@ -116,7 +116,7 @@ body::before {
   -webkit-backdrop-filter: blur(40px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 24px;
-  padding: 20px;
+  padding: 24px;
   box-shadow: 
     0 10px 30px 0 rgba(0, 0, 0, 0.3),
     0 4px 12px 0 rgba(0, 0, 0, 0.2),
@@ -130,13 +130,13 @@ body::before {
 
 @media (max-width: 768px) {
   .glass-card, .glass-card-reduced {
-    padding: 16px;
-    border-radius: 16px;
+    padding: 20px;
+    border-radius: 20px;
   }
   
   .glass-card-reduced {
-    padding: 14px;
-    border-radius: 14px;
+    padding: 18px;
+    border-radius: 18px;
   }
 }
 
@@ -184,9 +184,9 @@ body::before {
   -webkit-backdrop-filter: blur(25px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 16px;
-  padding: 12px 14px;
+  padding: 14px 16px;
   color: rgba(255, 255, 255, 0.75);
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
@@ -203,8 +203,8 @@ body::before {
 
 @media (max-width: 768px) {
   .glass-input {
-    font-size: 13px;
-    padding: 10px 12px;
+    font-size: 15px;
+    padding: 12px 14px;
   }
 }
 
@@ -230,11 +230,11 @@ body::before {
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 12px 20px;
+  border-radius: 16px;
+  padding: 16px 28px;
   color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
-  font-size: 14px;
+  font-size: 16px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -248,9 +248,9 @@ body::before {
 
 @media (max-width: 768px) {
   .glass-button {
-    font-size: 13px;
-    padding: 10px 16px;
-    border-radius: 12px;
+    font-size: 15px;
+    padding: 14px 24px;
+    border-radius: 14px;
   }
 }
 
@@ -290,15 +290,15 @@ body::before {
 
 /* iOS-style code input boxes */
 .code-input-box {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
   backdrop-filter: blur(25px) saturate(150%);
   -webkit-backdrop-filter: blur(25px) saturate(150%);
   border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 16px;
+  border-radius: 18px;
   text-align: center;
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.75);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -316,9 +316,9 @@ body::before {
 
 @media (max-width: 768px) {
   .code-input-box {
-    width: 42px;
-    height: 42px;
-    font-size: 20px;
+    width: 50px;
+    height: 50px;
+    font-size: 24px;
   }
 }
 
@@ -419,7 +419,7 @@ html {
 
 /* Ensure content scrolls above nav bar */
 .min-h-screen {
-  padding-bottom: 70px;
+  padding-bottom: 80px;
 }
 
 /* Add spacing between elements */
@@ -429,6 +429,10 @@ html {
 
 .space-y-4 > * + * {
   margin-top: 1rem;
+}
+
+.space-y-6 > * + * {
+  margin-top: 1.5rem;
 }
 
 /* Ensure all content can scroll above nav bar */
@@ -460,12 +464,20 @@ button, .glass-button {
   .min-h-screen {
     min-height: 100vh;
   }
+  
+  .h-full-screen {
+    height: calc(100vh - 100px);
+  }
 }
 
 @media (max-height: 700px) {
   .glass-card, .glass-card-reduced {
-    padding-top: 16px;
-    padding-bottom: 16px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1rem;
   }
   
   .space-y-4 > * + * {
@@ -475,4 +487,49 @@ button, .glass-button {
   .space-y-3 > * + * {
     margin-top: 0.5rem;
   }
+}
+
+/* Full screen card */
+.full-screen-card {
+  height: calc(100vh - 120px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* Stepped form styles */
+.step-form-container {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.step-form-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.step-form-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 2rem;
+}
+
+.step-indicator {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+}
+
+.step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.step-dot.active {
+  background: #F5F5DC;
 }
