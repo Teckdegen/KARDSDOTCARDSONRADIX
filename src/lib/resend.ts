@@ -7,7 +7,7 @@ const resend = new Resend(resendApiKey);
 export async function sendAuthCode(email: string, code: string): Promise<void> {
   try {
     await resend.emails.send({
-      from: 'KARDS <noreply@kards.kards>',
+      from: 'KARDS <noreply@assetid.site>',
       to: email,
       subject: 'Your KARDS Verification Code',
       html: `

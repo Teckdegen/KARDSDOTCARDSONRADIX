@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import GlassCard from '@/components/GlassCard';
 import GlassInput from '@/components/GlassInput';
@@ -8,7 +8,7 @@ import GlassButton from '@/components/GlassButton';
 import CodeInput from '@/components/CodeInput';
 import Logo from '@/components/Logo';
 import Link from 'next/link';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, RefreshCw } from 'lucide-react';
 import Notification from '@/components/Notification';
 
 export default function LoginPage() {
@@ -18,6 +18,28 @@ export default function LoginPage() {
   const [step, setStep] = useState<'email' | 'code'>('email');
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null);
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [codeSentAt, setCodeSentAt] = useState<Date | null>(null);
+  const countdownIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const autoResendTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const startCountdown = (seconds: number) => {
+    setResendCountdown(seconds);
+    if (countdownIntervalRef.current) {
+      clearInterval(countdownIntervalRef.current);
+    }
+    countdownIntervalRef.current = setInterval(() => {
+      setResendCountdown((prev) => {
+        if (prev <= 1) {
+          if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleSendCode = async () => {
     if (!email) {
@@ -36,7 +58,17 @@ export default function LoginPage() {
       const data = await response.json();
       if (data.success) {
         setStep('code');
+        setCodeSentAt(new Date());
+        startCountdown(600); // 10 minutes = 600 seconds
         setNotification({ message: 'Code sent! Check your email', type: 'success' });
+        
+        // Auto-resend after 10 minutes
+        if (autoResendTimeoutRef.current) {
+          clearTimeout(autoResendTimeoutRef.current);
+        }
+        autoResendTimeoutRef.current = setTimeout(() => {
+          handleResendCode(true);
+        }, 600000); // 10 minutes
       } else {
         setNotification({ message: data.message || 'Failed to send code', type: 'error' });
       }
@@ -46,6 +78,57 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  const handleResendCode = async (isAutoResend = false) => {
+    if (!email) return;
+
+    setLoading(true);
+    try {
+      const response = await fetch('/api/auth/resend-code', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setCodeSentAt(new Date());
+        startCountdown(600); // Reset countdown to 10 minutes
+        setNotification({ 
+          message: isAutoResend ? 'Code automatically resent! Check your email' : 'New code sent! Check your email', 
+          type: 'success' 
+        });
+        
+        // Schedule next auto-resend
+        if (autoResendTimeoutRef.current) {
+          clearTimeout(autoResendTimeoutRef.current);
+        }
+        autoResendTimeoutRef.current = setTimeout(() => {
+          handleResendCode(true);
+        }, 600000); // 10 minutes
+      } else {
+        if (data.remainingSeconds) {
+          startCountdown(data.remainingSeconds);
+        }
+        setNotification({ message: data.message || 'Failed to resend code', type: 'error' });
+      }
+    } catch (error) {
+      setNotification({ message: 'An error occurred', type: 'error' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    return () => {
+      if (countdownIntervalRef.current) {
+        clearInterval(countdownIntervalRef.current);
+      }
+      if (autoResendTimeoutRef.current) {
+        clearTimeout(autoResendTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleVerifyCode = async () => {
     if (!code || code.length !== 6) {
@@ -148,11 +231,29 @@ export default function LoginPage() {
                   )}
                 </GlassButton>
               </div>
-              <div className="pt-6">
+              <div className="pt-4 space-y-2">
+                <button
+                  onClick={() => handleResendCode(false)}
+                  disabled={loading || resendCountdown > 0}
+                  className="text-white/60 text-sm hover:text-white/80 transition-all duration-300 w-full text-center flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <RefreshCw size={14} className={resendCountdown > 0 ? 'animate-spin' : ''} />
+                  {resendCountdown > 0 
+                    ? `Resend code in ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, '0')}`
+                    : 'Resend Code'
+                  }
+                </button>
                 <button
                   onClick={() => {
                     setStep('email');
                     setCode('');
+                    setResendCountdown(0);
+                    if (countdownIntervalRef.current) {
+                      clearInterval(countdownIntervalRef.current);
+                    }
+                    if (autoResendTimeoutRef.current) {
+                      clearTimeout(autoResendTimeoutRef.current);
+                    }
                   }}
                   className="text-white/60 text-sm hover:text-white/80 transition-all duration-300 w-full text-center"
                 >
