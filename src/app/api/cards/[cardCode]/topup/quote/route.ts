@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth';
 import { supabaseAdmin } from '@/lib/supabase';
-import { calculateTopUpAmount } from '@/lib/utils';
-import { submitTransaction } from '@/lib/radix-rpc';
+import { getBridgeQuote } from '@/lib/bridge-client';
+import { checkXRDForBridge, getUSDCBalance } from '@/lib/radix-rpc';
 
 export async function POST(
   request: NextRequest,
@@ -11,12 +11,19 @@ export async function POST(
   try {
     const user = await requireAuth(request);
     const { cardCode } = await params;
-    const { amount, signedTransaction, walletAddress } = await request.json();
+    const { amount, walletAddress } = await request.json();
 
     // Validation
     if (!amount || amount < 6) {
       return NextResponse.json(
         { success: false, message: 'Minimum top-up amount is $6 USDC' },
+        { status: 400 }
+      );
+    }
+
+    if (!walletAddress) {
+      return NextResponse.json(
+        { success: false, message: 'Wallet address is required' },
         { status: 400 }
       );
     }
@@ -43,53 +50,35 @@ export async function POST(
       );
     }
 
-    // Validate signed transaction
-    if (!signedTransaction) {
+    // Check USDC balance
+    const usdcBalance = await getUSDCBalance(walletAddress);
+    if (usdcBalance < amount) {
       return NextResponse.json(
-        { success: false, message: 'Signed transaction is required' },
+        { success: false, message: `Insufficient USDC balance. You need $${amount} USDC. You have $${usdcBalance.toFixed(2)} USDC` },
         { status: 400 }
       );
     }
 
-    if (!walletAddress) {
+    // Check XRD balance for bridge transaction
+    const xrdBridgeCheck = await checkXRDForBridge(walletAddress);
+    if (!xrdBridgeCheck.hasEnough) {
       return NextResponse.json(
-        { success: false, message: 'Wallet address is required' },
+        { success: false, message: `Insufficient XRD for bridge transaction. You need roughly 410 XRD for Ethereum tx cost and bridge fee. Current: ${xrdBridgeCheck.balance.toFixed(2)} XRD` },
         { status: 400 }
       );
     }
 
-    // Calculate amounts
-    const PROCESSING_FEE = 2.5;
-    const cardAmount = calculateTopUpAmount(amount);
-
-    // Submit signed transaction to Radix network
-    const bridgeHash = await submitTransaction(signedTransaction);
-
-    // Create pending transaction
-    await supabaseAdmin.from('transactions').insert({
-      user_id: user.userId,
-      card_id: card.id,
-      type: 'top_up',
-      amount: cardAmount,
-      fee: PROCESSING_FEE,
-      status: 'pending',
-      hash: bridgeHash,
-      description: `Top-up card ${cardCode}`,
-    });
+    // Get bridge quote
+    const bridgeQuote = await getBridgeQuote(amount, walletAddress, card.card_wallet_address);
+    const manifest = bridgeQuote.route.tx.manifest;
 
     return NextResponse.json({
       success: true,
-      message: 'Top-up initiated. Processing...',
-      transactionHash: bridgeHash,
+      manifest,
+      quote: bridgeQuote,
     });
   } catch (error: any) {
-    if (error.message === 'Unauthorized') {
-      return NextResponse.json(
-        { success: false, message: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-    console.error('Error in top-up:', error);
+    console.error('Error in top-up quote:', error);
     return NextResponse.json(
       { success: false, message: error.message || 'Internal server error' },
       { status: 500 }

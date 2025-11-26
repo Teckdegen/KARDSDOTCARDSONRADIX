@@ -12,7 +12,7 @@ export default function Home() {
     if (!showSplash) {
       const token = localStorage.getItem('token');
       if (token) {
-        router.push('/dashboard');
+        router.push('/cards');
       } else {
         router.push('/login');
       }

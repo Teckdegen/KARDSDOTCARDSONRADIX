@@ -3,8 +3,6 @@ import { supabaseAdmin } from '@/lib/supabase';
 import { generateAuthCode, isValidEmail, isValidReferralCode } from '@/lib/utils';
 import { generateToken } from '@/lib/jwt';
 import { sendAuthCode } from '@/lib/resend';
-import { generateRadixWallet } from '@/lib/radix-wallet';
-import CryptoJS from 'crypto-js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,16 +58,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Generate Radix wallet
-    const { address: radixAddress, privateKey: radixPrivateKey } = await generateRadixWallet();
-
-    // Encrypt private key
-    const encryptedPrivateKey = CryptoJS.AES.encrypt(
-      radixPrivateKey,
-      process.env.ENCRYPTION_KEY!
-    ).toString();
-
-    // Create user
+    // Create user (no Radix wallet - users will connect their own external wallet)
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .insert({
@@ -85,25 +74,6 @@ export async function POST(request: NextRequest) {
       console.error('Error creating user:', userError);
       return NextResponse.json(
         { success: false, message: 'Failed to create account' },
-        { status: 500 }
-      );
-    }
-
-    // Create wallet
-    const { error: walletError } = await supabaseAdmin
-      .from('wallets')
-      .insert({
-        user_id: user.id,
-        radix_wallet_address: radixAddress,
-        radix_private_key: encryptedPrivateKey,
-      });
-
-    if (walletError) {
-      console.error('Error creating wallet:', walletError);
-      // Rollback user creation
-      await supabaseAdmin.from('users').delete().eq('id', user.id);
-      return NextResponse.json(
-        { success: false, message: 'Failed to create wallet' },
         { status: 500 }
       );
     }

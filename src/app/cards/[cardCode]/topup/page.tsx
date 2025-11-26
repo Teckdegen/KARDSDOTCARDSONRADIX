@@ -7,7 +7,7 @@ import GlassCard from '@/components/GlassCard';
 import GlassInput from '@/components/GlassInput';
 import GlassButton from '@/components/GlassButton';
 import Header from '@/components/Header';
-import { TrendingUp } from 'lucide-react';
+import { TrendingUp, Wallet } from 'lucide-react';
 
 export default function TopUpPage() {
   const router = useRouter();
@@ -17,6 +17,8 @@ export default function TopUpPage() {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [walletConnected, setWalletConnected] = useState(false);
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -25,8 +27,32 @@ export default function TopUpPage() {
     }
   }, [router]);
 
+  const connectWallet = async () => {
+    try {
+      // Check if Radix Wallet extension is available
+      if (typeof window !== 'undefined' && (window as any).radix) {
+        const radix = (window as any).radix;
+        const accounts = await radix.request({ method: 'wallet_requestAccounts' });
+        if (accounts && accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+          setWalletConnected(true);
+          setMessage('');
+        }
+      } else {
+        setMessage('Please install Radix Wallet extension or use Radix Wallet mobile app');
+      }
+    } catch (error: any) {
+      setMessage(error.message || 'Failed to connect wallet');
+    }
+  };
+
   const handleTopUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!walletConnected || !walletAddress) {
+      setMessage('Please connect your Radix wallet first');
+      return;
+    }
     
     const amountNum = parseFloat(amount);
     if (!amount || amountNum < 6) {
@@ -39,26 +65,68 @@ export default function TopUpPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await fetch(`/api/cards/${cardCode}/topup`, {
+      
+      // Get bridge quote and transaction manifest
+      const quoteResponse = await fetch(`/api/cards/${cardCode}/topup/quote`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ amount: amountNum }),
+        body: JSON.stringify({ 
+          amount: amountNum,
+          walletAddress: walletAddress 
+        }),
       });
 
-      const data = await response.json();
-      if (data.success) {
-        setMessage('Top-up initiated! Processing...');
-        setTimeout(() => {
-          router.push(`/cards/${cardCode}`);
-        }, 2000);
-      } else {
-        setMessage(data.message || 'Failed to top up card');
+      const quoteData = await quoteResponse.json();
+      if (!quoteData.success) {
+        setMessage(quoteData.message || 'Failed to get bridge quote');
+        return;
       }
-    } catch (error) {
-      setMessage('An error occurred');
+
+      // Request user to sign the transaction
+      if (typeof window !== 'undefined' && (window as any).radix) {
+        const radix = (window as any).radix;
+        const manifest = quoteData.manifest;
+        
+        // Sign transaction using Radix Wallet
+        const signedTx = await radix.request({
+          method: 'wallet_sendTransaction',
+          params: {
+            transactionManifest: manifest,
+            version: 1,
+          },
+        });
+
+        // Submit signed transaction
+        const response = await fetch(`/api/cards/${cardCode}/topup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ 
+            amount: amountNum,
+            signedTransaction: signedTx,
+            walletAddress: walletAddress
+          }),
+        });
+
+        const data = await response.json();
+        if (data.success) {
+          setMessage('Top-up initiated! Processing...');
+          setTimeout(() => {
+            router.push(`/cards/${cardCode}`);
+          }, 2000);
+        } else {
+          setMessage(data.message || 'Failed to top up card');
+        }
+      } else {
+        setMessage('Radix Wallet not connected');
+      }
+    } catch (error: any) {
+      setMessage(error.message || 'An error occurred');
     } finally {
       setLoading(false);
     }
@@ -80,18 +148,40 @@ export default function TopUpPage() {
               <p className="text-xs text-white/40">Minimum: $6 USDC</p>
             </div>
 
-            <div>
-              <label className="text-white/60 text-sm mb-2 block">Amount (USDC)</label>
-              <GlassInput
-                type="number"
-                placeholder="6.00"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                min="6"
-                step="0.01"
-                required
-              />
-            </div>
+            {!walletConnected ? (
+              <div className="text-center space-y-4">
+                <p className="text-white/60 text-sm">Connect your Radix wallet to continue</p>
+                <GlassButton
+                  type="button"
+                  onClick={connectWallet}
+                  variant="primary"
+                  className="w-full flex items-center justify-center gap-2"
+                >
+                  <Wallet size={16} />
+                  Connect Radix Wallet
+                </GlassButton>
+              </div>
+            ) : (
+              <>
+                <div className="glass-card bg-white/5 p-3 rounded-lg">
+                  <p className="text-white/60 text-xs mb-1">Connected Wallet</p>
+                  <p className="text-xs font-mono text-white/80 break-all">{walletAddress}</p>
+                </div>
+
+                <div>
+                  <label className="text-white/60 text-sm mb-2 block">Amount (USDC)</label>
+                  <GlassInput
+                    type="number"
+                    placeholder="6.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    min="6"
+                    step="0.01"
+                    required
+                  />
+                </div>
+              </>
+            )}
 
             {amount && parseFloat(amount) >= 6 && (
               <GlassCard className="bg-white/5 border-white/10">
@@ -123,14 +213,16 @@ export default function TopUpPage() {
               </p>
             )}
 
-            <GlassButton
-              type="submit"
-              disabled={loading || !amount || parseFloat(amount) < 6}
-              variant="primary"
-              className="w-full"
-            >
-              {loading ? 'Processing...' : 'Confirm Top Up'}
-            </GlassButton>
+            {walletConnected && (
+              <GlassButton
+                type="submit"
+                disabled={loading || !amount || parseFloat(amount) < 6}
+                variant="primary"
+                className="w-full"
+              >
+                {loading ? 'Processing...' : 'Confirm Top Up'}
+              </GlassButton>
+            )}
           </GlassCard>
         </form>
       </div>
