@@ -3,7 +3,7 @@
  * Uses Radix Engine Toolkit to generate wallet addresses and private keys
  */
 
-import { PrivateKey, PublicKey, address, AccountAddress } from '@radixdlt/radix-engine-toolkit';
+import { PrivateKey, PublicKey, address } from '@radixdlt/radix-engine-toolkit';
 
 export interface RadixWallet {
   address: string;
