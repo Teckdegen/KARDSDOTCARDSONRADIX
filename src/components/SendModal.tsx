@@ -73,12 +73,12 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 bg-black/60 backdrop-blur-md z-50 flex items-center justify-center p-4 fade-in"
       onClick={onClose}
     >
-      <GlassCard 
-        className="w-full max-w-md relative fade-in"
+      <GlassCard
+        className="w-full max-w-lg h-full max-h-[520px] relative fade-in flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         <button
@@ -88,7 +88,7 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
           <X size={20} />
         </button>
 
-        <div className="text-center mb-4">
+        <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-[#F5F5DC]/10 mb-3">
             <Send size={24} style={{ color: '#F5F5DC' }} />
           </div>
@@ -96,50 +96,60 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
           <p className="text-white/60 text-xs">Available: <span className="text-[#F5F5DC] font-semibold">{balance.toFixed(2)} USDC</span></p>
         </div>
 
-        <form onSubmit={handleSend} className="space-y-4">
-          <div>
-            <label className="text-white/70 text-xs mb-1.5 block font-medium">Recipient Address</label>
-            <GlassInput
-              placeholder="account_rdx..."
-              value={recipientAddress}
-              onChange={(e) => setRecipientAddress(e.target.value)}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="text-white/70 text-xs mb-1.5 block font-medium">Amount (USDC)</label>
-            <GlassInput
-              type="number"
-              placeholder="0.00"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-              min="0"
-              step="0.01"
-              max={balance.toString()}
-              required
-            />
-          </div>
-
-          {message && (
-            <div className={`glass-card p-3 ${
-              message.includes('successfully') 
-                ? 'bg-green-500/10 border-green-500/30' 
-                : 'bg-red-500/10 border-red-500/30'
-            }`}>
-              <p className={`text-sm text-center ${
-                message.includes('successfully') ? 'text-green-400' : 'text-red-400'
-              }`}>
-                {message}
-              </p>
+        <form onSubmit={handleSend} className="flex-1 flex flex-col justify-between space-y-4">
+          <div className="space-y-4">
+            <div>
+              <label className="text-white/70 text-xs mb-1.5 block font-medium">
+                Recipient Address
+              </label>
+              <GlassInput
+                placeholder="account_rdx..."
+                value={recipientAddress}
+                onChange={(e) => setRecipientAddress(e.target.value)}
+                required
+              />
             </div>
-          )}
+
+            <div>
+              <label className="text-white/70 text-xs mb-1.5 block font-medium">
+                Amount (USDC)
+              </label>
+              <GlassInput
+                type="number"
+                placeholder="0.00"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                min="0"
+                step="0.01"
+                max={balance.toString()}
+                required
+              />
+            </div>
+
+            {message && (
+              <div
+                className={`glass-card p-3 ${
+                  message.includes('successfully')
+                    ? 'bg-green-500/10 border-green-500/30'
+                    : 'bg-red-500/10 border-red-500/30'
+                }`}
+              >
+                <p
+                  className={`text-sm text-center ${
+                    message.includes('successfully') ? 'text-green-400' : 'text-red-400'
+                  }`}
+                >
+                  {message}
+                </p>
+              </div>
+            )}
+          </div>
 
           <GlassButton
             type="submit"
             disabled={loading}
             variant="primary"
-            className="w-full flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-2 mt-2"
           >
             {loading ? (
               <>Sending...</>
