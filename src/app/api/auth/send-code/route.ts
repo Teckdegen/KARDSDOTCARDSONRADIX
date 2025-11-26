@@ -14,6 +14,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if user exists in users table
+    const { data: existingUser } = await supabaseAdmin
+      .from('users')
+      .select('id')
+      .eq('email', email.toLowerCase())
+      .single();
+
+    if (!existingUser) {
+      return NextResponse.json(
+        { success: false, message: 'Email not found. Please create an account first.' },
+        { status: 404 }
+      );
+    }
+
     // Generate 6-digit code
     const code = generateAuthCode();
     const expiresAt = new Date();

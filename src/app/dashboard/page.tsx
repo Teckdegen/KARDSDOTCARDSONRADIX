@@ -84,8 +84,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20 p-3 fade-in">
-      <div className="w-full max-w-4xl mx-auto space-y-3">
+    <div className="min-h-screen pb-20 p-3 fade-in flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="KARDS" centered />
 
         <GlassCard className="fade-in">
@@ -94,10 +94,10 @@ export default function DashboardPage() {
               <Wallet size={20} style={{ color: '#F5F5DC' }} />
             </div>
             <p className="text-white/60 text-xs mb-1.5 font-medium">Balance</p>
-            <h2 className="text-3xl font-bold mb-2 bg-gradient-to-r from-[#F5F5DC] to-[#E8E8D3] bg-clip-text text-transparent">
+            <h2 className="text-2xl font-bold mb-2 bg-gradient-to-r from-[#F5F5DC] to-[#E8E8D3] bg-clip-text text-transparent">
               {balance !== null ? `${balance.toFixed(2)}` : '0.00'}
             </h2>
-            <p className="text-white/40 text-xs">XRD</p>
+            <p className="text-white/40 text-xs">USDC</p>
           </div>
         </GlassCard>
 
@@ -130,29 +130,29 @@ export default function DashboardPage() {
 
         <div className="grid grid-cols-2 gap-2 fade-in">
           <GlassCard 
-            className="text-center cursor-pointer group p-3"
+            className="text-center cursor-pointer group p-2"
             onClick={() => setShowSendModal(true)}
           >
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-red-500/10 mb-2 group-hover:bg-red-500/20 transition-colors">
-              <Send size={18} className="text-red-400" />
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-red-500/10 mb-1.5 group-hover:bg-red-500/20 transition-colors">
+              <Send size={14} className="text-red-400" />
             </div>
             <p className="text-xs font-medium">Send</p>
           </GlassCard>
           <GlassCard 
-            className="text-center cursor-pointer group p-3"
+            className="text-center cursor-pointer group p-2"
             onClick={() => setShowReceiveModal(true)}
           >
-            <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-green-500/10 mb-2 group-hover:bg-green-500/20 transition-colors">
-              <QrCode size={18} className="text-green-400" />
+            <div className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-green-500/10 mb-1.5 group-hover:bg-green-500/20 transition-colors">
+              <QrCode size={14} className="text-green-400" />
             </div>
             <p className="text-xs font-medium">Receive</p>
           </GlassCard>
         </div>
 
-        <GlassCard className="fade-in">
-          <p className="text-white/70 text-xs mb-2 font-medium">Wallet Address</p>
-          <div className="glass-card bg-white/5 p-2 rounded-lg">
-            <p className="text-xs break-all font-mono text-white/80 leading-relaxed">{address}</p>
+        <GlassCard className="fade-in p-2">
+          <p className="text-white/70 text-xs mb-1.5 font-medium">Wallet Address</p>
+          <div className="glass-card bg-white/5 p-1.5 rounded-lg">
+            <p className="text-xs break-all font-mono text-white/80 leading-tight">{address}</p>
           </div>
         </GlassCard>
 
@@ -194,7 +194,7 @@ export default function DashboardPage() {
                     <p className={`font-semibold text-xs ${
                       tx.type === 'radix_send' ? 'text-red-400' : 'text-green-400'
                     }`}>
-                      {tx.type === 'radix_send' ? '-' : '+'}{tx.amount.toFixed(2)} XRD
+                      {tx.type === 'radix_send' ? '-' : '+'}{tx.amount.toFixed(2)} USDC
                     </p>
                     <p className="text-white/50 text-xs capitalize">{tx.status}</p>
                   </div>

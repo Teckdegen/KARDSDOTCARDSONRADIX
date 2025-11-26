@@ -58,8 +58,8 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-screen pb-20 p-4">
-      <div className="w-full max-w-4xl mx-auto space-y-3">
+    <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Support" centered />
 
         <GlassCard>
@@ -119,29 +119,29 @@ export default function SupportPage() {
         </GlassCard>
 
         <GlassCard>
-          <h3 className="text-lg font-semibold mb-4">Frequently Asked Questions</h3>
-          <div className="space-y-4">
+          <h3 className="text-sm font-semibold mb-3">Frequently Asked Questions</h3>
+          <div className="space-y-3">
             <div>
-              <p className="font-medium mb-1">How do I create a card?</p>
-              <p className="text-white/60 text-sm">
+              <p className="text-xs font-medium mb-1">How do I create a card?</p>
+              <p className="text-white/60 text-xs">
                 Go to Cards → Create New Card, fill in the required information, and pay $25 ($10 insurance + $15 to card).
               </p>
             </div>
             <div>
-              <p className="font-medium mb-1">What's the minimum top-up amount?</p>
-              <p className="text-white/60 text-sm">
+              <p className="text-xs font-medium mb-1">What's the minimum top-up amount?</p>
+              <p className="text-white/60 text-xs">
                 The minimum top-up amount is $6 USDC. A $2.5 processing fee applies.
               </p>
             </div>
             <div>
-              <p className="font-medium mb-1">How do referrals work?</p>
-              <p className="text-white/60 text-sm">
+              <p className="text-xs font-medium mb-1">How do referrals work?</p>
+              <p className="text-white/60 text-xs">
                 Share your referral code. You earn $0.5 for each card created with your code. Claim earnings weekly.
               </p>
             </div>
             <div>
-              <p className="font-medium mb-1">How many cards can I have?</p>
-              <p className="text-white/60 text-sm">
+              <p className="text-xs font-medium mb-1">How many cards can I have?</p>
+              <p className="text-white/60 text-xs">
                 You can have up to 4 cards per account.
               </p>
             </div>

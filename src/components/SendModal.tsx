@@ -92,8 +92,8 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-[#F5F5DC]/10 mb-4">
             <Send size={32} style={{ color: '#F5F5DC' }} />
           </div>
-          <h2 className="text-2xl font-bold mb-2">Send Radix</h2>
-          <p className="text-white/60 text-sm">Available: <span className="text-[#F5F5DC] font-semibold">{balance.toFixed(2)} XRD</span></p>
+          <h2 className="text-lg font-bold mb-2">Send USDC</h2>
+          <p className="text-white/60 text-xs">Available: <span className="text-[#F5F5DC] font-semibold">{balance.toFixed(2)} USDC</span></p>
         </div>
 
         <form onSubmit={handleSend} className="space-y-5">
@@ -108,7 +108,7 @@ export default function SendModal({ isOpen, onClose, balance, onSuccess }: SendM
           </div>
 
           <div>
-            <label className="text-white/70 text-sm mb-2 block font-medium">Amount (XRD)</label>
+            <label className="text-white/70 text-xs mb-2 block font-medium">Amount (USDC)</label>
             <GlassInput
               type="number"
               placeholder="0.00"

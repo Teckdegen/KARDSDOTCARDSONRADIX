@@ -122,15 +122,15 @@ export default function ReferralsPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20 p-3">
-      <div className="w-full max-w-4xl mx-auto space-y-3">
+    <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Referrals" centered />
 
         <GlassCard>
           <div className="text-center mb-3">
             <Trophy className="mx-auto mb-2" size={24} style={{ color: '#F5F5DC' }} />
             <p className="text-white/60 text-xs mb-1.5">Your Referral Code</p>
-            <p className="text-lg font-bold font-mono mb-3">{referralCode}</p>
+            <p className="text-base font-bold font-mono mb-2">{referralCode}</p>
             <div className="flex gap-2 justify-center">
               <GlassButton variant="secondary" onClick={copyCode} className="flex items-center gap-1.5 text-xs px-3 py-1.5">
                 <Copy size={12} />
@@ -148,7 +148,7 @@ export default function ReferralsPage() {
           <div className="text-center mb-3">
             <Gift className="mx-auto mb-1.5" size={20} style={{ color: '#F5F5DC' }} />
             <p className="text-white/60 text-xs mb-1">Total Cashback Earned</p>
-            <p className="text-xl font-bold mb-1.5" style={{ color: '#F5F5DC' }}>
+            <p className="text-lg font-bold mb-1.5" style={{ color: '#F5F5DC' }}>
               ${stats?.allTimeEarnings.toFixed(2) || '0.00'}
             </p>
             {stats && stats.weeklyEarnings > 0 && (

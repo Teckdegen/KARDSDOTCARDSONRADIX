@@ -22,10 +22,26 @@ export default function SettingsPage() {
       return;
     }
 
-    // Fetch user profile (you'll need to create this API endpoint)
-    // For now, we'll just show the settings page
-    setLoading(false);
+    fetchUserProfile();
   }, [router]);
+
+  const fetchUserProfile = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/user/profile', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setUser(data.user);
+      }
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -41,8 +57,8 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20 p-4">
-      <div className="w-full max-w-4xl mx-auto space-y-3">
+    <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
+      <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Settings" centered />
 
         <GlassCard>
@@ -54,14 +70,18 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
-              <p className="text-white/60 text-sm mb-1">Email</p>
-              <p className="font-medium">{user?.email || 'Loading...'}</p>
+              <p className="text-white/60 text-xs mb-1">Name</p>
+              <p className="text-sm font-medium">{user?.fullName || user?.firstName || 'N/A'}</p>
             </div>
             <div>
-              <p className="text-white/60 text-sm mb-1">Account Created</p>
-              <p className="font-medium">
+              <p className="text-white/60 text-xs mb-1">Email</p>
+              <p className="text-sm font-medium">{user?.email || 'Loading...'}</p>
+            </div>
+            <div>
+              <p className="text-white/60 text-xs mb-1">Account Created</p>
+              <p className="text-sm font-medium">
                 {user?.createdAt ? new Date(user.createdAt).toLocaleDateString() : 'N/A'}
               </p>
             </div>
@@ -69,11 +89,11 @@ export default function SettingsPage() {
         </GlassCard>
 
         <GlassCard>
-          <div className="flex items-center gap-3 mb-4">
-            <SettingsIcon size={18} style={{ color: '#F5F5DC' }} />
-            <h2 className="text-lg font-semibold">Preferences</h2>
+          <div className="flex items-center gap-2 mb-3">
+            <SettingsIcon size={16} style={{ color: '#F5F5DC' }} />
+            <h2 className="text-sm font-semibold">Preferences</h2>
           </div>
-          <p className="text-white/60 text-sm">Settings coming soon...</p>
+          <p className="text-white/60 text-xs">Settings coming soon...</p>
         </GlassCard>
 
         <GlassButton
