@@ -6,9 +6,9 @@ import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassButton from '@/components/GlassButton';
 import Header from '@/components/Header';
-import Link from 'next/link';
-import { ArrowUpRight, ArrowRight } from 'lucide-react';
+import { ArrowUpRight } from 'lucide-react';
 import SendModal from '@/components/SendModal';
+import ReceiveModal from '@/components/ReceiveModal';
 
 interface WalletTransaction {
   id?: string;
@@ -30,6 +30,7 @@ export default function DashboardPage() {
   const [address, setAddress] = useState<string | null>(null);
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [sendOpen, setSendOpen] = useState(false);
+  const [receiveOpen, setReceiveOpen] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -114,20 +115,20 @@ export default function DashboardPage() {
               disabled={balance <= 0}
             >
               <ArrowUpRight size={16} />
-              <span className="text-sm">Send USDC</span>
+              <span className="text-sm">Send</span>
             </GlassButton>
-            <Link href="/cards" className="flex-1">
-              <GlassButton
-                variant="secondary"
-                className="w-full flex items-center justify-center gap-2 text-sm"
-              >
-                View Cards <ArrowRight size={14} />
-              </GlassButton>
-            </Link>
+            <GlassButton
+              variant="secondary"
+              className="flex-1 flex items-center justify-center gap-2 text-sm"
+              onClick={() => setReceiveOpen(true)}
+              disabled={!address}
+            >
+              Receive
+            </GlassButton>
           </div>
         </GlassCard>
 
-        {/* Transactions list */}
+        {/* Wallet transactions list */}
         <GlassCard>
           <h2 className="text-sm font-semibold mb-3">Wallet Activity</h2>
           {transactions.length === 0 ? (
@@ -168,42 +169,6 @@ export default function DashboardPage() {
           )}
         </GlassCard>
 
-        {/* Quick actions */}
-        <GlassCard className="space-y-3">
-          <h2 className="text-sm font-semibold">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <Link
-              href="/cards/create"
-              className="glass-card p-3 rounded-xl text-center hover:bg-white/10 transition"
-            >
-              <p className="font-medium">Create Card</p>
-              <p className="text-xs text-white/60 mt-1">
-                Open a new virtual or physical card
-              </p>
-            </Link>
-            <Link
-              href="/referrals"
-              className="glass-card p-3 rounded-xl text-center hover:bg-white/10 transition"
-            >
-              <p className="font-medium">Referrals</p>
-              <p className="text-xs text-white/60 mt-1">Share and earn from referrals</p>
-            </Link>
-            <Link
-              href="/support"
-              className="glass-card p-3 rounded-xl text-center hover:bg-white/10 transition"
-            >
-              <p className="font-medium">Support</p>
-              <p className="text-xs text-white/60 mt-1">Get help and FAQs</p>
-            </Link>
-            <Link
-              href="/settings"
-              className="glass-card p-3 rounded-xl text-center hover:bg-white/10 transition"
-            >
-              <p className="font-medium">Settings</p>
-              <p className="text-xs text-white/60 mt-1">Profile &amp; security</p>
-            </Link>
-          </div>
-        </GlassCard>
       </div>
 
       <SendModal
@@ -215,6 +180,14 @@ export default function DashboardPage() {
           fetchTransactions();
         }}
       />
+
+      {address && (
+        <ReceiveModal
+          isOpen={receiveOpen}
+          onClose={() => setReceiveOpen(false)}
+          address={address}
+        />
+      )}
 
       <BottomNav />
     </div>
