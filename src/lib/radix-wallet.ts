@@ -30,7 +30,9 @@ export async function generateRadixWallet(): Promise<RadixWallet> {
     const publicKey = privateKey.publicKey();
     
     // Derive account address from public key using RETK's address function
-    const accountAddressObj = address(publicKey);
+    // address() expects a string or number, so convert public key to string
+    const publicKeyString = publicKey.toString();
+    const accountAddressObj = address(publicKeyString);
     
     // Extract the address string - RETK returns an Address object with structure:
     // { kind: "Static", value: "account_rdx..." } or similar
