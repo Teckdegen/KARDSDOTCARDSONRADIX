@@ -88,8 +88,8 @@ export default function CardsPage() {
               <h2 className="text-xl font-bold mb-2">No Cards Yet</h2>
               <p className="text-white/60 mb-6 text-sm">Create your first crypto debit card to get started</p>
               <Link href="/cards/create">
-                <GlassButton variant="primary" className="w-full flex items-center justify-center gap-2 py-3">
-                  <Plus size={20} />
+                <GlassButton variant="primary" className="w-full flex items-center justify-center gap-2 py-4 text-lg font-bold">
+                  <Plus size={24} />
                   Create Your First Card
                 </GlassButton>
               </Link>
@@ -131,9 +131,9 @@ export default function CardsPage() {
             
             {cards.length < 4 && (
               <Link href="/cards/create">
-                <GlassCard className="cursor-pointer hover:scale-105 transition p-6 text-center border-2 border-dashed border-white/20 hover:border-white/40">
-                  <Plus className="mx-auto mb-2" size={24} style={{ color: '#F5F5DC' }} />
-                  <p className="text-white/60">Create New Card</p>
+                <GlassCard className="cursor-pointer hover:scale-105 transition p-8 text-center border-2 border-dashed border-white/20 hover:border-white/40">
+                  <Plus className="mx-auto mb-3" size={32} style={{ color: '#F5F5DC' }} />
+                  <p className="text-white/60 text-lg font-medium">Create New Card</p>
                 </GlassCard>
               </Link>
             )}
