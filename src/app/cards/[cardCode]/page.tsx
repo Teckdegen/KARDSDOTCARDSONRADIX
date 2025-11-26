@@ -129,16 +129,16 @@ export default function CardDetailsPage() {
         <Header title="Card Details" showBack backUrl="/cards" />
 
         <GlassCard>
-          <div className="text-center mb-6">
-            <CreditCard className="mx-auto mb-4" size={48} style={{ color: '#F5F5DC' }} />
-            <h2 className="text-2xl font-bold mb-2">{card.card_name}</h2>
-            <p className="text-white/60 text-sm mb-4">
+          <div className="text-center mb-4">
+            <CreditCard className="mx-auto mb-3" size={32} style={{ color: '#F5F5DC' }} />
+            <h2 className="text-lg font-bold mb-1.5">{card.card_name}</h2>
+            <p className="text-white/60 text-xs mb-3">
               {card.card_brand} {card.card_type}
             </p>
-            <div className="text-4xl font-bold mb-2">
+            <div className="text-2xl font-bold mb-1.5">
               ${card.balance?.toFixed(2) || '0.00'}
             </div>
-            <p className="text-white/60 text-sm">Balance</p>
+            <p className="text-white/60 text-xs">Balance</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-6">

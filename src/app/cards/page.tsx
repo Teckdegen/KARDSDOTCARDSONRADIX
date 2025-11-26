@@ -90,35 +90,35 @@ export default function CardsPage() {
         />
 
         {cards.length === 0 ? (
-          <GlassCard className="text-center py-12">
-            <CreditCard className="mx-auto mb-4" size={48} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/60 mb-4">No cards yet</p>
+          <GlassCard className="text-center py-8">
+            <CreditCard className="mx-auto mb-3" size={32} style={{ color: '#F5F5DC' }} />
+            <p className="text-white/60 mb-3 text-sm">No cards yet</p>
             <Link href="/cards/create">
-              <GlassButton variant="primary">Create Your First Card</GlassButton>
+              <GlassButton variant="primary" className="text-sm py-2">Create Your First Card</GlassButton>
             </Link>
           </GlassCard>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {cards.map((card) => (
               <Link key={card.id} href={`/cards/${card.card_code}`}>
-                <GlassCard className="cursor-pointer hover:scale-105 transition">
+                <GlassCard className="cursor-pointer hover:scale-105 transition p-3">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <CreditCard size={24} style={{ color: '#F5F5DC' }} />
-                        <h3 className="text-lg font-semibold">{card.card_name}</h3>
+                      <div className="flex items-center gap-2 mb-1.5">
+                        <CreditCard size={18} style={{ color: '#F5F5DC' }} />
+                        <h3 className="text-sm font-semibold">{card.card_name}</h3>
                       </div>
-                      <p className="text-white/60 text-sm mb-1">
+                      <p className="text-white/60 text-xs mb-1.5">
                         {card.card_brand} •••• {card.last4 || 'XXXX'}
                       </p>
-                      <div className="flex items-center gap-4 mt-3">
+                      <div className="flex items-center gap-3 mt-2">
                         <div>
                           <p className="text-white/60 text-xs">Balance</p>
-                          <p className="text-xl font-bold">${card.balance?.toFixed(2) || '0.00'}</p>
+                          <p className="text-base font-bold">${card.balance?.toFixed(2) || '0.00'}</p>
                         </div>
                         <div>
                           <p className="text-white/60 text-xs">Status</p>
-                          <p className={`text-sm font-medium ${getStatusColor(card.status)}`}>
+                          <p className={`text-xs font-medium ${getStatusColor(card.status)}`}>
                             {card.status}
                           </p>
                         </div>
