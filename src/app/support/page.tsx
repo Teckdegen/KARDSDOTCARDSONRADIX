@@ -58,7 +58,7 @@ export default function SupportPage() {
   };
 
   return (
-    <div className="min-h-screen pb-20 p-3">
+    <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
       <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Support" centered />
 

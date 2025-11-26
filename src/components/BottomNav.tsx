@@ -19,19 +19,20 @@ export default function BottomNav() {
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bottom-nav">
       <div className="glass-card rounded-t-3xl border-t border-white/20 p-1 mx-0 max-w-full">
-        <div className="flex justify-evenly items-center max-w-md mx-auto">
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = pathname === item.href;
-            
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex flex-col items-center gap-0.5 transition-all duration-200 relative group flex-1 ${
-                  isActive ? 'text-[#F5F5DC]' : 'text-white/50'
-                }`}
-              >
+        <div className="flex items-center justify-center w-full">
+          <div className="flex items-center justify-evenly w-full max-w-md mx-auto">
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = pathname === item.href;
+              
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`flex flex-col items-center gap-0.5 transition-all duration-200 relative group ${
+                    isActive ? 'text-[#F5F5DC]' : 'text-white/50'
+                  }`}
+                >
                 <div className={`relative transition-all duration-200 ${
                   isActive ? 'scale-110' : ''
                 }`}>
@@ -51,6 +52,7 @@ export default function BottomNav() {
               </Link>
             );
           })}
+          </div>
         </div>
       </div>
     </nav>
