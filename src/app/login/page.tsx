@@ -147,7 +147,7 @@ export default function LoginPage() {
       const data = await response.json();
       if (data.success && data.token) {
         localStorage.setItem('token', data.token);
-        router.push('/cards');
+        router.push('/dashboard');
       } else {
         setNotification({ message: data.message || 'Invalid code', type: 'error' });
       }

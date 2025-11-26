@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Home, CreditCard, Trophy, HelpCircle, Settings } from 'lucide-react';
 
 const navItems = [
+  { href: '/dashboard', icon: Home, label: 'Home' },
   { href: '/cards', icon: CreditCard, label: 'Cards' },
   { href: '/referrals', icon: Trophy, label: 'Referrals' },
   { href: '/support', icon: HelpCircle, label: 'Support' },
