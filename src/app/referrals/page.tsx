@@ -127,17 +127,17 @@ export default function ReferralsPage() {
         <Header title="Referrals" centered />
 
         <GlassCard>
-          <div className="text-center mb-3">
-            <Trophy className="mx-auto mb-2" size={24} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/60 text-xs mb-1.5">Your Referral Code</p>
-            <p className="text-base font-bold font-mono mb-2">{referralCode}</p>
-            <div className="flex gap-2 justify-center">
-              <GlassButton variant="secondary" onClick={copyCode} className="flex items-center gap-1.5 text-xs px-3 py-1.5">
-                <Copy size={12} />
+          <div className="text-center mb-2">
+            <Trophy className="mx-auto mb-1" size={16} style={{ color: '#F5F5DC' }} />
+            <p className="text-white/60 text-[10px] mb-1">Your Referral Code</p>
+            <p className="text-xs font-bold font-mono mb-1.5">{referralCode}</p>
+            <div className="flex gap-1.5 justify-center">
+              <GlassButton variant="secondary" onClick={copyCode} className="flex items-center gap-1 text-[10px] px-2 py-1">
+                <Copy size={10} />
                 Copy
               </GlassButton>
-              <GlassButton variant="secondary" onClick={shareCode} className="flex items-center gap-1.5 text-xs px-3 py-1.5">
-                <Share2 size={12} />
+              <GlassButton variant="secondary" onClick={shareCode} className="flex items-center gap-1 text-[10px] px-2 py-1">
+                <Share2 size={10} />
                 Share
               </GlassButton>
             </div>
