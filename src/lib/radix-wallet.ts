@@ -3,7 +3,7 @@
  * Uses Radix Engine Toolkit to generate wallet addresses and private keys
  */
 
-import { PrivateKey, PublicKey, address } from '@radixdlt/radix-engine-toolkit';
+import { PrivateKey, PublicKey, address, AccountAddress } from '@radixdlt/radix-engine-toolkit';
 
 export interface RadixWallet {
   address: string;
@@ -30,13 +30,47 @@ export async function generateRadixWallet(): Promise<RadixWallet> {
     const publicKey = privateKey.publicKey();
     
     // Derive account address from public key using RETK's address function
-    // address() expects a string (public key as hex string), not a PublicKey object
-    const publicKeyString = publicKey.toString();
-    const accountAddressObj = address(publicKeyString);
-    // Extract the address string - RETK returns an Address object with a value property
-    const accountAddress = typeof accountAddressObj === 'string' 
-      ? accountAddressObj 
-      : (accountAddressObj as any).value || accountAddressObj.toString();
+    const accountAddressObj = address(publicKey);
+    
+    // Extract the address string - RETK returns an Address object with structure:
+    // { kind: "Static", value: "account_rdx..." } or similar
+    let accountAddress: string;
+    
+    if (typeof accountAddressObj === 'string') {
+      accountAddress = accountAddressObj;
+    } else if (accountAddressObj && typeof accountAddressObj === 'object') {
+      const addrObj = accountAddressObj as any;
+      
+      // Try toString() first
+      if (typeof addrObj.toString === 'function') {
+        const str = addrObj.toString();
+        if (str && str.startsWith('account_rdx')) {
+          accountAddress = str;
+        } else {
+          // If toString doesn't give us the right format, try value property
+          if (addrObj.value && typeof addrObj.value === 'string') {
+            accountAddress = addrObj.value;
+          } else if (addrObj.value && typeof addrObj.value === 'object' && addrObj.value.value) {
+            accountAddress = addrObj.value.value;
+          } else {
+            accountAddress = str;
+          }
+        }
+      } else if (addrObj.value && typeof addrObj.value === 'string') {
+        accountAddress = addrObj.value;
+      } else if (addrObj.value && typeof addrObj.value === 'object' && addrObj.value.value) {
+        accountAddress = addrObj.value.value;
+      } else {
+        accountAddress = String(accountAddressObj);
+      }
+    } else {
+      accountAddress = String(accountAddressObj);
+    }
+    
+    // Log for debugging if address doesn't have expected format
+    if (!accountAddress.startsWith('account_rdx')) {
+      console.warn('Generated address does not start with account_rdx:', accountAddress);
+    }
     
     return {
       address: accountAddress,

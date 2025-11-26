@@ -19,9 +19,23 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Extract address string if it's stored as an object
+    let address = wallet.radix_wallet_address;
+    if (address && typeof address === 'object') {
+      // Handle object structure: { kind: "Static", value: "..." }
+      const addrObj = address as any;
+      if (addrObj.value && typeof addrObj.value === 'string') {
+        address = addrObj.value;
+      } else if (addrObj.value && typeof addrObj.value === 'object' && addrObj.value.value) {
+        address = addrObj.value.value;
+      } else {
+        address = String(address);
+      }
+    }
+
     return NextResponse.json({
       success: true,
-      address: wallet.radix_wallet_address,
+      address: address,
     });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
