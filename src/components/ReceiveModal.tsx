@@ -19,7 +19,7 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
   useEffect(() => {
     if (isOpen && address) {
       QRCode.toDataURL(address, {
-        width: 280,
+        width: 360,
         margin: 2,
         color: {
           dark: '#F5F5DC',
@@ -62,9 +62,9 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
         </div>
 
         {qrCode && (
-          <div className="flex justify-center mb-4">
+          <div className="flex justify-center mb-6">
             <div className="glass-card p-4 rounded-2xl">
-              <img src={qrCode} alt="QR Code" className="w-48 h-48" />
+              <img src={qrCode} alt="QR Code" className="w-64 h-64" />
             </div>
           </div>
         )}
