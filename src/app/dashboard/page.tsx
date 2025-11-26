@@ -74,21 +74,13 @@ export default function DashboardPage() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-white/60">Loading...</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
+    <div className="min-h-screen pb-20 pt-6 p-3 flex items-start justify-center">
       <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Dashboard" showBack={false} />
 
         {/* Wallet balance + send */}
-        <GlassCard className="space-y-3">
+        <GlassCard className="space-y-3 min-h-[220px]">
           <div className="text-center mb-2">
             <p className="text-white/60 text-xs mb-1">Total USDC Balance</p>
             <div className="text-3xl font-bold mb-1">${balance.toFixed(2)}</div>
@@ -112,7 +104,6 @@ export default function DashboardPage() {
               variant="primary"
               className="flex-1 flex items-center justify-center gap-2"
               onClick={() => setSendOpen(true)}
-              disabled={balance <= 0}
             >
               <ArrowUpRight size={16} />
               <span className="text-sm">Send</span>
@@ -121,7 +112,6 @@ export default function DashboardPage() {
               variant="secondary"
               className="flex-1 flex items-center justify-center gap-2 text-sm"
               onClick={() => setReceiveOpen(true)}
-              disabled={!address}
             >
               Receive
             </GlassButton>
@@ -129,7 +119,7 @@ export default function DashboardPage() {
         </GlassCard>
 
         {/* Wallet transactions list */}
-        <GlassCard>
+        <GlassCard className="min-h-[220px]">
           <h2 className="text-sm font-semibold mb-3">Wallet Activity</h2>
           {transactions.length === 0 ? (
             <p className="text-white/60 text-sm text-center py-4">No wallet transactions yet</p>

@@ -6,12 +6,13 @@ export async function GET(request: NextRequest) {
   try {
     const user = await requireAuth(request);
 
-    // Get transactions from database (Radix transactions are stored when they occur)
+    // Get on-chain related transactions from database
+    // Includes direct sends/receives and bridge/top-up/insurance events
     const { data: transactions, error } = await supabaseAdmin
       .from('transactions')
       .select('*')
       .eq('user_id', user.userId)
-      .in('type', ['radix_send', 'radix_receive'])
+      .in('type', ['radix_send', 'radix_receive', 'bridge', 'insurance_fee', 'top_up'])
       .order('created_at', { ascending: false })
       .limit(50);
 
