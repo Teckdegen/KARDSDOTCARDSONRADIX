@@ -11,7 +11,7 @@ export async function POST(
   try {
     const user = await requireAuth(request);
     const { cardCode } = await params;
-    const { amount, signedTransaction, walletAddress } = await request.json();
+    const { amount, transactionHash, walletAddress } = await request.json();
 
     // Validation
     if (!amount || amount < 6) {
@@ -43,10 +43,10 @@ export async function POST(
       );
     }
 
-    // Validate signed transaction
-    if (!signedTransaction) {
+    // Validate transaction hash
+    if (!transactionHash) {
       return NextResponse.json(
-        { success: false, message: 'Signed transaction is required' },
+        { success: false, message: 'Transaction hash is required' },
         { status: 400 }
       );
     }
@@ -62,8 +62,9 @@ export async function POST(
     const PROCESSING_FEE = 2.5;
     const cardAmount = calculateTopUpAmount(amount);
 
-    // Submit signed transaction to Radix network
-    const bridgeHash = await submitTransaction(signedTransaction);
+    // Transaction was already submitted by the client
+    // We just need to store it and create the transaction record
+    const bridgeHash = transactionHash;
 
     // Create pending transaction
     await supabaseAdmin.from('transactions').insert({

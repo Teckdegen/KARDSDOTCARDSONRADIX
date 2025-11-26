@@ -8,6 +8,7 @@ import GlassInput from '@/components/GlassInput';
 import GlassButton from '@/components/GlassButton';
 import Header from '@/components/Header';
 import { TrendingUp, Wallet } from 'lucide-react';
+import { connectRadixWallet, isRadixWalletInstalled, signAndSendTransaction } from '@/lib/radix-wallet-connector';
 
 export default function TopUpPage() {
   const router = useRouter();
@@ -29,18 +30,15 @@ export default function TopUpPage() {
 
   const connectWallet = async () => {
     try {
-      // Check if Radix Wallet extension is available
-      if (typeof window !== 'undefined' && (window as any).radix) {
-        const radix = (window as any).radix;
-        const accounts = await radix.request({ method: 'wallet_requestAccounts' });
-        if (accounts && accounts.length > 0) {
-          setWalletAddress(accounts[0]);
-          setWalletConnected(true);
-          setMessage('');
-        }
-      } else {
-        setMessage('Please install Radix Wallet extension or use Radix Wallet mobile app');
+      if (!isRadixWalletInstalled()) {
+        setMessage('Please install Radix Wallet extension from wallet.radixdlt.com');
+        return;
       }
+      
+      const wallet = await connectRadixWallet();
+      setWalletAddress(wallet.address);
+      setWalletConnected(true);
+      setMessage('');
     } catch (error: any) {
       setMessage(error.message || 'Failed to connect wallet');
     }
@@ -85,45 +83,32 @@ export default function TopUpPage() {
         return;
       }
 
-      // Request user to sign the transaction
-      if (typeof window !== 'undefined' && (window as any).radix) {
-        const radix = (window as any).radix;
-        const manifest = quoteData.manifest;
-        
-        // Sign transaction using Radix Wallet
-        const signedTx = await radix.request({
-          method: 'wallet_sendTransaction',
-          params: {
-            transactionManifest: manifest,
-            version: 1,
-          },
-        });
+      // Sign and send transaction using Radix Wallet
+      const manifest = quoteData.manifest;
+      const txHash = await signAndSendTransaction(manifest);
 
-        // Submit signed transaction
-        const response = await fetch(`/api/cards/${cardCode}/topup`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({ 
-            amount: amountNum,
-            signedTransaction: signedTx,
-            walletAddress: walletAddress
-          }),
-        });
+      // Submit transaction hash
+      const response = await fetch(`/api/cards/${cardCode}/topup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ 
+          amount: amountNum,
+          transactionHash: txHash,
+          walletAddress: walletAddress
+        }),
+      });
 
-        const data = await response.json();
-        if (data.success) {
-          setMessage('Top-up initiated! Processing...');
-          setTimeout(() => {
-            router.push(`/cards/${cardCode}`);
-          }, 2000);
-        } else {
-          setMessage(data.message || 'Failed to top up card');
-        }
+      const data = await response.json();
+      if (data.success) {
+        setMessage('Top-up initiated! Processing...');
+        setTimeout(() => {
+          router.push(`/cards/${cardCode}`);
+        }, 2000);
       } else {
-        setMessage('Radix Wallet not connected');
+        setMessage(data.message || 'Failed to top up card');
       }
     } catch (error: any) {
       setMessage(error.message || 'An error occurred');
