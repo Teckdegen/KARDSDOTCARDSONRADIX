@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassButton from '@/components/GlassButton';
 import LogoutModal from '@/components/LogoutModal';
-import Logo from '@/components/Logo';
+import Header from '@/components/Header';
 import { Settings as SettingsIcon, Power, User } from 'lucide-react';
 
 export default function SettingsPage() {
@@ -43,10 +43,7 @@ export default function SettingsPage() {
   return (
     <div className="min-h-screen pb-20 p-4">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center justify-center gap-3 pt-8">
-          <Logo size={28} className="rounded-xl" />
-          <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>Settings</h1>
-        </div>
+        <Header title="Settings" centered />
 
         <GlassCard>
           <div className="flex items-center gap-3 mb-6">

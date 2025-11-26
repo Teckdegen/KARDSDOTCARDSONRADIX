@@ -5,7 +5,8 @@ import { useRouter, useParams } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassButton from '@/components/GlassButton';
-import { ArrowLeft, CreditCard, TrendingUp, Lock, Unlock } from 'lucide-react';
+import Header from '@/components/Header';
+import { CreditCard, TrendingUp, Lock, Unlock } from 'lucide-react';
 import Link from 'next/link';
 
 interface CardDetails {
@@ -125,12 +126,7 @@ export default function CardDetailsPage() {
   return (
     <div className="min-h-screen pb-20 p-4">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center gap-4 pt-8">
-          <Link href="/cards">
-            <ArrowLeft size={24} className="text-white/60 hover:text-white transition" />
-          </Link>
-          <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>Card Details</h1>
-        </div>
+        <Header title="Card Details" showBack backUrl="/cards" />
 
         <GlassCard>
           <div className="text-center mb-6">

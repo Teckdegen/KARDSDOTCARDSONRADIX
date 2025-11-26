@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import SendModal from '@/components/SendModal';
 import ReceiveModal from '@/components/ReceiveModal';
-import Logo from '@/components/Logo';
+import Header from '@/components/Header';
 import { Wallet, Send, QrCode, ArrowUpRight, ArrowDownRight, Gift } from 'lucide-react';
 
 interface Transaction {
@@ -86,13 +86,7 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen pb-20 p-4 fade-in">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center justify-center gap-3 pt-8 fade-in">
-          <Logo size={32} className="rounded-xl" />
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>KARDS</h1>
-            <p className="text-white/40 text-xs">Radix Wallet</p>
-          </div>
-        </div>
+        <Header title="KARDS" centered />
 
         <GlassCard className="fade-in">
           <div className="text-center">

@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassInput from '@/components/GlassInput';
 import GlassButton from '@/components/GlassButton';
-import Logo from '@/components/Logo';
+import Header from '@/components/Header';
 import { HelpCircle, Mail } from 'lucide-react';
 
 export default function SupportPage() {
@@ -60,13 +60,7 @@ export default function SupportPage() {
   return (
     <div className="min-h-screen pb-20 p-4">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center justify-center gap-3 pt-8">
-          <Logo size={28} className="rounded-xl" />
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>Support</h1>
-            <p className="text-white/40 text-xs">We're here to help</p>
-          </div>
-        </div>
+        <Header title="Support" centered />
 
         <GlassCard>
           <div className="flex items-center gap-3 mb-6">

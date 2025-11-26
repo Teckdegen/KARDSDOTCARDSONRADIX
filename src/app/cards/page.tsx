@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassButton from '@/components/GlassButton';
-import Logo from '@/components/Logo';
+import Header from '@/components/Header';
 import { CreditCard, Plus } from 'lucide-react';
 import Link from 'next/link';
 
@@ -76,18 +76,18 @@ export default function CardsPage() {
   return (
     <div className="min-h-screen pb-20 p-4">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center justify-between pt-8">
-          <div className="flex items-center gap-3">
-            <Logo size={28} className="rounded-xl" />
-            <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>My Cards</h1>
-          </div>
-          <Link href="/cards/create">
-            <GlassButton variant="primary" className="flex items-center gap-2 px-4 py-2">
-              <Plus size={18} />
-              <span className="hidden sm:inline">Create</span>
-            </GlassButton>
-          </Link>
-        </div>
+        <Header 
+          title="My Cards" 
+          centered
+          rightAction={
+            <Link href="/cards/create">
+              <GlassButton variant="primary" className="flex items-center gap-2 px-4 py-2">
+                <Plus size={18} />
+                <span className="hidden sm:inline">Create</span>
+              </GlassButton>
+            </Link>
+          }
+        />
 
         {cards.length === 0 ? (
           <GlassCard className="text-center py-12">

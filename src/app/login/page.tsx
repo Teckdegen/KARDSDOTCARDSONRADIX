@@ -81,7 +81,7 @@ export default function LoginPage() {
         <GlassCard className="fade-in">
           <div className="text-center mb-10">
             <div className="inline-flex items-center justify-center mb-6">
-              <Logo size={80} className="rounded-3xl" />
+              <Logo size={100} className="rounded-3xl" />
             </div>
             <h1 className="text-2xl md:text-3xl font-semibold mb-2" style={{ color: 'rgba(245, 245, 220, 0.6)' }}>Welcome back</h1>
             <p className="text-white/40 text-sm md:text-base">Sign in to continue</p>

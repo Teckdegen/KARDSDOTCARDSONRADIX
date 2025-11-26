@@ -6,8 +6,8 @@ import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassInput from '@/components/GlassInput';
 import GlassButton from '@/components/GlassButton';
-import { ArrowLeft, TrendingUp } from 'lucide-react';
-import Link from 'next/link';
+import Header from '@/components/Header';
+import { TrendingUp } from 'lucide-react';
 
 export default function TopUpPage() {
   const router = useRouter();
@@ -70,12 +70,7 @@ export default function TopUpPage() {
   return (
     <div className="min-h-screen pb-20 p-4">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center gap-4 pt-8">
-          <Link href={`/cards/${cardCode}`}>
-            <ArrowLeft size={24} className="text-white/60 hover:text-white transition" />
-          </Link>
-          <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>Top Up Card</h1>
-        </div>
+        <Header title="Top Up Card" showBack backUrl={`/cards/${cardCode}`} />
 
         <form onSubmit={handleTopUp}>
           <GlassCard className="space-y-6">

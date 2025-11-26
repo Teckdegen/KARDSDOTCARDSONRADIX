@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassButton from '@/components/GlassButton';
-import Logo from '@/components/Logo';
+import Header from '@/components/Header';
 import { Trophy, Copy, Share2, DollarSign, Users, Award, Gift } from 'lucide-react';
 
 interface ReferralStats {
@@ -124,13 +124,7 @@ export default function ReferralsPage() {
   return (
     <div className="min-h-screen pb-20 p-4">
       <div className="max-w-md mx-auto space-y-6">
-        <div className="flex items-center justify-center gap-3 pt-8">
-          <Logo size={28} className="rounded-xl" />
-          <div>
-            <h1 className="text-2xl font-bold" style={{ color: '#F5F5DC' }}>Referrals</h1>
-            <p className="text-white/40 text-xs">Earn $0.5 per card</p>
-          </div>
-        </div>
+        <Header title="Referrals" centered />
 
         <GlassCard>
           <div className="text-center mb-4">
