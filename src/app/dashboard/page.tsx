@@ -93,48 +93,8 @@ export default function DashboardPage() {
       <div className="w-full max-w-2xl mx-auto space-y-6">
         <Header title="Dashboard" showBack={false} />
 
-        {/* Wallet balance + send */}
-        <GlassCard className="space-y-3 min-h-[220px]">
-          <div className="text-center mb-2">
-            <p className="text-white/60 text-xs mb-1">Total USDC Balance</p>
-            <div className="text-3xl font-bold mb-1">${balance.toFixed(2)}</div>
-            <p className="text-white/50 text-xs">
-              XRD for gas:{' '}
-              <span className="font-semibold">{xrdBalance.toFixed(4)} XRD</span>
-            </p>
-          </div>
-
-          {address && (
-            <div className="glass-card bg-white/5 p-3 rounded-xl text-xs text-white/70 break-all">
-              <p className="mb-1 text-[10px] uppercase tracking-wide text-white/40">
-                Radix Wallet
-              </p>
-              <p className="font-mono text-[11px]">{address}</p>
-            </div>
-          )}
-
-          <div className="flex gap-3 pt-2">
-            <GlassButton
-              variant="primary"
-              className="flex-1 flex items-center justify-center gap-2"
-              onClick={() => setSendOpen(true)}
-            >
-              <ArrowUpRight size={16} />
-              <span className="text-sm">Send</span>
-            </GlassButton>
-            <GlassButton
-              variant="secondary"
-              className="flex-1 flex items-center justify-center gap-2 text-sm"
-              onClick={() => setReceiveOpen(true)}
-            >
-              <Download size={16} />
-              Receive
-            </GlassButton>
-          </div>
-        </GlassCard>
-
-        {/* Wallet transactions list */}
-        <GlassCard className="min-h-[220px] mt-6">
+        {/* Wallet transactions list - moved to top */}
+        <GlassCard className="min-h-[220px]">
           <h2 className="text-sm font-semibold mb-3">Wallet Activity</h2>
           {transactions.length === 0 ? (
             <p className="text-white/60 text-sm text-center py-4">No wallet transactions yet</p>
@@ -172,6 +132,46 @@ export default function DashboardPage() {
               })}
             </div>
           )}
+        </GlassCard>
+
+        {/* Wallet balance + send - moved to bottom */}
+        <GlassCard className="space-y-3 min-h-[220px] mt-6">
+          <div className="text-center mb-2">
+            <p className="text-white/60 text-xs mb-1">Total USDC Balance</p>
+            <div className="text-3xl font-bold mb-1">${balance.toFixed(2)}</div>
+            <p className="text-white/50 text-xs">
+              XRD for gas:{' '}
+              <span className="font-semibold">{xrdBalance.toFixed(4)} XRD</span>
+            </p>
+          </div>
+
+          {address && (
+            <div className="glass-card bg-white/5 p-3 rounded-xl text-xs text-white/70 break-all">
+              <p className="mb-1 text-[10px] uppercase tracking-wide text-white/40">
+                Radix Wallet
+              </p>
+              <p className="font-mono text-[11px]">{address}</p>
+            </div>
+          )}
+
+          <div className="flex gap-3 pt-2">
+            <GlassButton
+              variant="primary"
+              className="flex-1 flex items-center justify-center gap-2"
+              onClick={() => setSendOpen(true)}
+            >
+              <ArrowUpRight size={16} />
+              <span className="text-sm">Send</span>
+            </GlassButton>
+            <GlassButton
+              variant="secondary"
+              className="flex-1 flex items-center justify-center gap-2 text-sm"
+              onClick={() => setReceiveOpen(true)}
+            >
+              <Download size={16} />
+              Receive
+            </GlassButton>
+          </div>
         </GlassCard>
 
       </div>
