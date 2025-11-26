@@ -7,17 +7,11 @@ import GlassCard from '@/components/GlassCard';
 import GlassInput from '@/components/GlassInput';
 import GlassButton from '@/components/GlassButton';
 import Header from '@/components/Header';
-import { Wallet, CheckCircle } from 'lucide-react';
-import { connectRadixWallet, isRadixWalletInstalled, signAndSendTransaction } from '@/lib/radix-wallet-connector';
 
 export default function CreateCardPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [walletConnected, setWalletConnected] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [insurancePaid, setInsurancePaid] = useState(false);
-  const [processingStep, setProcessingStep] = useState<'connect' | 'insurance' | 'bridge' | 'complete'>('connect');
   const [formData, setFormData] = useState({
     phoneCode: '+1',
     phoneNumber: '',
@@ -36,140 +30,15 @@ export default function CreateCardPage() {
     if (!token) {
       router.push('/login');
     }
-    
-    // Check if wallet is already connected
-    if (isRadixWalletInstalled()) {
-      checkWalletConnection();
-    }
   }, [router]);
-
-  const checkWalletConnection = async () => {
-    try {
-      const { connectRadixWallet } = await import('@/lib/radix-wallet-connector');
-      const wallet = await connectRadixWallet();
-      setWalletAddress(wallet.address);
-      setWalletConnected(true);
-      setProcessingStep('insurance');
-    } catch (error) {
-      // Wallet not connected yet
-    }
-  };
-
-  const handleConnectWallet = async () => {
-    try {
-      const wallet = await connectRadixWallet();
-      setWalletAddress(wallet.address);
-      setWalletConnected(true);
-      setProcessingStep('insurance');
-      setMessage('');
-    } catch (error: any) {
-      setMessage(error.message || 'Failed to connect wallet');
-    }
-  };
-
-  const handlePayInsurance = async () => {
-    if (!walletAddress) {
-      setMessage('Please connect your wallet first');
-      return;
-    }
-
-    setLoading(true);
-    setMessage('');
-
-    try {
-      const token = localStorage.getItem('token');
-      
-      // Get insurance payment manifest
-      const quoteResponse = await fetch('/api/cards/create/insurance-quote', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ walletAddress }),
-      });
-
-      const quoteData = await quoteResponse.json();
-      if (!quoteData.success) {
-        setMessage(quoteData.message || 'Failed to get insurance quote');
-        return;
-      }
-
-      // Sign and send insurance payment
-      const txHash = await signAndSendTransaction(quoteData.manifest);
-      
-      // Confirm insurance payment
-      const confirmResponse = await fetch('/api/cards/create/confirm-insurance', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({ 
-          walletAddress,
-          transactionHash: txHash 
-        }),
-      });
-
-      const confirmData = await confirmResponse.json();
-      if (confirmData.success) {
-        setInsurancePaid(true);
-        setProcessingStep('bridge');
-        setMessage('Insurance fee paid! Now proceed with card funding.');
-      } else {
-        setMessage(confirmData.message || 'Failed to confirm insurance payment');
-      }
-    } catch (error: any) {
-      setMessage(error.message || 'Failed to pay insurance fee');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleCreateCard = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!walletConnected || !walletAddress) {
-      setMessage('Please connect your Radix wallet first');
-      return;
-    }
-
-    if (!insurancePaid) {
-      setMessage('Please pay the insurance fee first');
-      return;
-    }
-
     setLoading(true);
     setMessage('');
-    setProcessingStep('bridge');
 
     try {
       const token = localStorage.getItem('token');
-      
-      // Get bridge quote for card funding
-      const bridgeResponse = await fetch('/api/cards/create/bridge-quote', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          ...formData,
-          initialAmount: parseFloat(formData.initialAmount),
-          walletAddress,
-        }),
-      });
-
-      const bridgeData = await bridgeResponse.json();
-      if (!bridgeData.success) {
-        setMessage(bridgeData.message || 'Failed to get bridge quote');
-        return;
-      }
-
-      // Sign and send bridge transaction
-      const bridgeHash = await signAndSendTransaction(bridgeData.manifest);
-
-      // Create card with signed bridge transaction
       const response = await fetch('/api/cards/create', {
         method: 'POST',
         headers: {
@@ -179,14 +48,11 @@ export default function CreateCardPage() {
         body: JSON.stringify({
           ...formData,
           initialAmount: parseFloat(formData.initialAmount),
-          walletAddress,
-          bridgeTransactionHash: bridgeHash,
         }),
       });
 
       const data = await response.json();
       if (data.success) {
-        setProcessingStep('complete');
         setMessage('Card creation initiated! Processing...');
         setTimeout(() => {
           router.push('/cards');
@@ -194,8 +60,8 @@ export default function CreateCardPage() {
       } else {
         setMessage(data.message || 'Failed to create card');
       }
-    } catch (error: any) {
-      setMessage(error.message || 'An error occurred');
+    } catch (error) {
+      setMessage('An error occurred');
     } finally {
       setLoading(false);
     }
@@ -208,68 +74,8 @@ export default function CreateCardPage() {
       <div className="w-full max-w-2xl mx-auto space-y-3">
         <Header title="Create Card" showBack backUrl="/cards" />
 
-        {!walletConnected ? (
+        <form onSubmit={handleCreateCard}>
           <GlassCard className="space-y-4">
-            <div className="text-center">
-              <Wallet className="mx-auto mb-4" size={48} style={{ color: '#F5F5DC' }} />
-              <h2 className="text-lg font-bold mb-2">Connect Your Radix Wallet</h2>
-              <p className="text-white/60 text-sm mb-4">
-                Connect your Radix wallet to create a card. You'll need to pay a $10 insurance fee and fund your card.
-              </p>
-              {!isRadixWalletInstalled() && (
-                <p className="text-yellow-400 text-xs mb-4">
-                  Please install Radix Wallet extension from{' '}
-                  <a href="https://wallet.radixdlt.com/" target="_blank" rel="noopener noreferrer" className="underline">
-                    wallet.radixdlt.com
-                  </a>
-                </p>
-              )}
-              <GlassButton
-                type="button"
-                onClick={handleConnectWallet}
-                variant="primary"
-                className="w-full flex items-center justify-center gap-2"
-                disabled={!isRadixWalletInstalled()}
-              >
-                <Wallet size={16} />
-                Connect Radix Wallet
-              </GlassButton>
-            </div>
-          </GlassCard>
-        ) : (
-          <>
-            <GlassCard className="bg-white/5">
-              <div className="flex items-center gap-2 mb-2">
-                <CheckCircle size={16} className="text-green-400" />
-                <p className="text-sm font-medium">Wallet Connected</p>
-              </div>
-              <p className="text-xs font-mono text-white/80 break-all">{walletAddress}</p>
-            </GlassCard>
-
-            {!insurancePaid ? (
-              <GlassCard className="space-y-4">
-                <div className="text-center">
-                  <h3 className="text-base font-bold mb-2">Step 1: Pay Insurance Fee</h3>
-                  <p className="text-white/60 text-sm mb-4">Pay $10.00 USDC insurance fee to proceed</p>
-                </div>
-                <GlassButton
-                  type="button"
-                  onClick={handlePayInsurance}
-                  variant="primary"
-                  className="w-full"
-                  disabled={loading}
-                >
-                  {loading ? 'Processing...' : 'Pay $10.00 Insurance Fee'}
-                </GlassButton>
-              </GlassCard>
-            ) : (
-              <form onSubmit={handleCreateCard}>
-                <GlassCard className="space-y-4">
-                  <div className="text-center mb-4">
-                    <CheckCircle size={24} className="mx-auto mb-2 text-green-400" />
-                    <p className="text-sm text-green-400 mb-2">Insurance Fee Paid ✓</p>
-                    <h3 className="text-base font-bold">Step 2: Card Details & Funding</h3>
-                  </div>
             <div>
               <label className="text-white/60 text-sm mb-2 block">Phone Code</label>
               <select
@@ -403,32 +209,32 @@ export default function CreateCardPage() {
             </GlassCard>
 
             {message && (
-              <p className={`text-sm text-center ${
-                message.includes('error') || message.includes('Failed') 
-                  ? 'text-red-400' 
-                  : 'text-green-400'
-              }`}>
+              <p
+                className={`text-sm text-center ${
+                  message.includes('error') || message.includes('Failed')
+                    ? 'text-red-400'
+                    : 'text-green-400'
+                }`}
+              >
                 {message}
               </p>
             )}
 
-                  <GlassButton
-                    type="submit"
-                    disabled={loading}
-                    variant="primary"
-                    className="w-full"
-                  >
-                    {loading ? (processingStep === 'bridge' ? 'Bridging Funds...' : 'Creating Card...') : 'Create Card & Bridge Funds'}
-                  </GlassButton>
-                </GlassCard>
-              </form>
-            )}
-          </>
-        )}
+            <GlassButton
+              type="submit"
+              disabled={loading}
+              variant="primary"
+              className="w-full"
+            >
+              {loading ? 'Creating Card...' : 'Create Card'}
+            </GlassButton>
+          </GlassCard>
+        </form>
       </div>
 
       <BottomNav />
     </div>
   );
 }
+
 

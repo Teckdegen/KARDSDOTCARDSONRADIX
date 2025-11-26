@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { generateAuthCode, isValidEmail, isValidReferralCode } from '@/lib/utils';
+import { generateAuthCode, isValidEmail, isValidReferralCode, encrypt } from '@/lib/utils';
 import { generateToken } from '@/lib/jwt';
 import { sendAuthCode } from '@/lib/resend';
+import { generateRadixWallet } from '@/lib/radix-wallet';
 
 export async function POST(request: NextRequest) {
   try {
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create user (no Radix wallet - users will connect their own external wallet)
+    // Create user
     const { data: user, error: userError } = await supabaseAdmin
       .from('users')
       .insert({
@@ -77,6 +78,16 @@ export async function POST(request: NextRequest) {
         { status: 500 }
       );
     }
+
+    // Auto-generate internal Radix wallet for this user
+    const wallet = await generateRadixWallet();
+
+    // Store wallet in Supabase: address in plain text, private key encrypted
+    await supabaseAdmin.from('wallets').insert({
+      user_id: user.id,
+      radix_wallet_address: wallet.address,
+      radix_private_key: encrypt(wallet.privateKey),
+    });
 
     // Generate and send verification code
     const code = generateAuthCode();

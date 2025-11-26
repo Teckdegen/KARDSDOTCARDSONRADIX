@@ -10,6 +10,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@radixdlt/radix-dapp-toolkit": "^1.6.1",
     "@radixdlt/radix-engine-toolkit": "^1.0.5",
     "@supabase/supabase-js": "^2.84.0",
     "bcryptjs": "^3.0.3",

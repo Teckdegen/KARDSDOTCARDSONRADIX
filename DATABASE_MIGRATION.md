@@ -24,3 +24,4 @@ DROP COLUMN IF EXISTS radix_private_key;
 - Wallet addresses are stored temporarily in the frontend during transactions
 - No server-side wallet storage is needed
 
+
