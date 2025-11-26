@@ -4,6 +4,7 @@
  */
 
 import { PrivateKey, PublicKey, address } from '@radixdlt/radix-engine-toolkit';
+import { bech32 as bech32Encoder } from 'bech32';
 
 export interface RadixWallet {
   address: string;
@@ -34,45 +35,34 @@ export async function generateRadixWallet(): Promise<RadixWallet> {
     const publicKeyString = publicKey.toString();
     const accountAddressObj = address(publicKeyString);
     
-    // Extract the address string - RETK returns an Address object with structure:
-    // { kind: "Static", value: "account_rdx..." } or similar
-    let accountAddress: string;
-    
+    // Extract the hash from the address object
+    // RETK returns: { kind: "Address", value: { kind: "Static", value: "hex_string" } }
+    let hashHex: string;
     if (typeof accountAddressObj === 'string') {
-      accountAddress = accountAddressObj;
+      hashHex = accountAddressObj;
     } else if (accountAddressObj && typeof accountAddressObj === 'object') {
       const addrObj = accountAddressObj as any;
-      
-      // Try toString() first
-      if (typeof addrObj.toString === 'function') {
-        const str = addrObj.toString();
-        if (str && str.startsWith('account_rdx')) {
-          accountAddress = str;
-        } else {
-          // If toString doesn't give us the right format, try value property
-          if (addrObj.value && typeof addrObj.value === 'string') {
-            accountAddress = addrObj.value;
-          } else if (addrObj.value && typeof addrObj.value === 'object' && addrObj.value.value) {
-            accountAddress = addrObj.value.value;
-          } else {
-            accountAddress = str;
-          }
-        }
+      if (addrObj.value && addrObj.value.value && typeof addrObj.value.value === 'string') {
+        hashHex = addrObj.value.value;
       } else if (addrObj.value && typeof addrObj.value === 'string') {
-        accountAddress = addrObj.value;
-      } else if (addrObj.value && typeof addrObj.value === 'object' && addrObj.value.value) {
-        accountAddress = addrObj.value.value;
+        hashHex = addrObj.value;
       } else {
-        accountAddress = String(accountAddressObj);
+        throw new Error('Unable to extract hash from address object');
       }
     } else {
-      accountAddress = String(accountAddressObj);
+      throw new Error('Invalid address object returned from RETK');
     }
     
-    // Log for debugging if address doesn't have expected format
-    if (!accountAddress.startsWith('account_rdx')) {
-      console.warn('Generated address does not start with account_rdx:', accountAddress);
-    }
+    // Convert hex hash to bytes
+    const hashBytes = Buffer.from(hashHex, 'hex');
+    
+    // Encode as bech32 with Radix account address prefix
+    // Radix account addresses use HRP "account_rdx" and version byte 0x01
+    const words = bech32Encoder.toWords(hashBytes);
+    // Prepend version byte (0x01 for account addresses)
+    const versionByte = 0x01;
+    const wordsWithVersion = [versionByte, ...words];
+    const accountAddress = bech32Encoder.encode('account_rdx', wordsWithVersion);
     
     return {
       address: accountAddress,

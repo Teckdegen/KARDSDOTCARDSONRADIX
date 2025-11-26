@@ -13,6 +13,7 @@
     "@radixdlt/radix-engine-toolkit": "^1.0.5",
     "@supabase/supabase-js": "^2.84.0",
     "bcryptjs": "^3.0.3",
+    "bech32": "^2.0.0",
     "crypto-js": "^4.2.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.554.0",
