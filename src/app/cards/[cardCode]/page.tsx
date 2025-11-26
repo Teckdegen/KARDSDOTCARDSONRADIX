@@ -125,7 +125,7 @@ export default function CardDetailsPage() {
 
   return (
     <div className="min-h-screen pb-20 p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="w-full max-w-4xl mx-auto space-y-3">
         <Header title="Card Details" showBack backUrl="/cards" />
 
         <GlassCard>
@@ -155,7 +155,7 @@ export default function CardDetailsPage() {
           <div className="flex gap-3">
             <Link href={`/cards/${cardCode}/topup`} className="flex-1">
               <GlassButton variant="primary" className="w-full flex items-center justify-center gap-2">
-                <TrendingUp size={20} />
+                <TrendingUp size={16} />
                 Top Up
               </GlassButton>
             </Link>
@@ -165,14 +165,14 @@ export default function CardDetailsPage() {
               disabled={freezing}
               className="flex items-center justify-center gap-2"
             >
-              {card.status === 'frozen' ? <Unlock size={20} /> : <Lock size={20} />}
+              {card.status === 'frozen' ? <Unlock size={16} /> : <Lock size={16} />}
               {card.status === 'frozen' ? 'Unfreeze' : 'Freeze'}
             </GlassButton>
           </div>
         </GlassCard>
 
         <GlassCard>
-          <h3 className="text-lg font-semibold mb-4">Transactions</h3>
+          <h3 className="text-sm font-semibold mb-3">Transactions</h3>
           {transactions.length === 0 ? (
             <p className="text-white/60 text-sm text-center py-4">No transactions yet</p>
           ) : (

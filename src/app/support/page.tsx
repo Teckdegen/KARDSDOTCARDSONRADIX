@@ -59,15 +59,15 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen pb-20 p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="w-full max-w-4xl mx-auto space-y-3">
         <Header title="Support" centered />
 
         <GlassCard>
-          <div className="flex items-center gap-3 mb-6">
-            <HelpCircle size={32} style={{ color: '#F5F5DC' }} />
+          <div className="flex items-center gap-2 mb-4">
+            <HelpCircle size={20} style={{ color: '#F5F5DC' }} />
             <div>
-              <h2 className="text-lg font-semibold">Contact Us</h2>
-              <p className="text-white/60 text-sm">We'll respond via email</p>
+              <h2 className="text-sm font-semibold">Contact Us</h2>
+              <p className="text-white/60 text-xs">We'll respond via email</p>
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export default function SupportPage() {
               variant="primary"
               className="w-full flex items-center justify-center gap-2"
             >
-              <Mail size={20} />
+              <Mail size={16} />
               {loading ? 'Sending...' : 'Send Message'}
             </GlassButton>
           </form>

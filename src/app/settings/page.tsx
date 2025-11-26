@@ -42,15 +42,15 @@ export default function SettingsPage() {
 
   return (
     <div className="min-h-screen pb-20 p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="w-full max-w-4xl mx-auto space-y-3">
         <Header title="Settings" centered />
 
         <GlassCard>
-          <div className="flex items-center gap-3 mb-6">
-            <User size={32} style={{ color: '#F5F5DC' }} />
+          <div className="flex items-center gap-2 mb-4">
+            <User size={20} style={{ color: '#F5F5DC' }} />
             <div>
-              <h2 className="text-lg font-semibold">Profile</h2>
-              <p className="text-white/60 text-sm">Account information</p>
+              <h2 className="text-sm font-semibold">Profile</h2>
+              <p className="text-white/60 text-xs">Account information</p>
             </div>
           </div>
 
@@ -70,7 +70,7 @@ export default function SettingsPage() {
 
         <GlassCard>
           <div className="flex items-center gap-3 mb-4">
-            <SettingsIcon size={24} style={{ color: '#F5F5DC' }} />
+            <SettingsIcon size={18} style={{ color: '#F5F5DC' }} />
             <h2 className="text-lg font-semibold">Preferences</h2>
           </div>
           <p className="text-white/60 text-sm">Settings coming soon...</p>
@@ -81,7 +81,7 @@ export default function SettingsPage() {
           onClick={() => setShowLogoutModal(true)}
           className="w-full flex items-center justify-center gap-2 text-red-400 border-red-400/30 hover:bg-red-400/10"
         >
-          <Power size={20} />
+          <Power size={16} />
           Sign Out
         </GlassButton>
       </div>

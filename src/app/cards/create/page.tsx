@@ -71,7 +71,7 @@ export default function CreateCardPage() {
 
   return (
     <div className="min-h-screen pb-20 p-4">
-      <div className="max-w-md mx-auto space-y-6">
+      <div className="w-full max-w-4xl mx-auto space-y-3">
         <Header title="Create Card" showBack backUrl="/cards" />
 
         <form onSubmit={handleSubmit}>

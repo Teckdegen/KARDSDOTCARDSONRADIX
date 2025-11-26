@@ -122,22 +122,22 @@ export default function ReferralsPage() {
   }
 
   return (
-    <div className="min-h-screen pb-20 p-4">
-      <div className="max-w-md mx-auto space-y-6">
+    <div className="min-h-screen pb-20 p-3">
+      <div className="w-full max-w-4xl mx-auto space-y-3">
         <Header title="Referrals" centered />
 
         <GlassCard>
-          <div className="text-center mb-4">
-            <Trophy className="mx-auto mb-3" size={40} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/60 text-sm mb-2">Your Referral Code</p>
-            <p className="text-2xl font-bold font-mono mb-4">{referralCode}</p>
-            <div className="flex gap-3 justify-center">
-              <GlassButton variant="secondary" onClick={copyCode} className="flex items-center gap-2">
-                <Copy size={16} />
+          <div className="text-center mb-3">
+            <Trophy className="mx-auto mb-2" size={24} style={{ color: '#F5F5DC' }} />
+            <p className="text-white/60 text-xs mb-1.5">Your Referral Code</p>
+            <p className="text-lg font-bold font-mono mb-3">{referralCode}</p>
+            <div className="flex gap-2 justify-center">
+              <GlassButton variant="secondary" onClick={copyCode} className="flex items-center gap-1.5 text-xs px-3 py-1.5">
+                <Copy size={12} />
                 Copy
               </GlassButton>
-              <GlassButton variant="secondary" onClick={shareCode} className="flex items-center gap-2">
-                <Share2 size={16} />
+              <GlassButton variant="secondary" onClick={shareCode} className="flex items-center gap-1.5 text-xs px-3 py-1.5">
+                <Share2 size={12} />
                 Share
               </GlassButton>
             </div>
@@ -145,37 +145,37 @@ export default function ReferralsPage() {
         </GlassCard>
 
         <GlassCard className="bg-gradient-to-br from-[#F5F5DC]/10 to-[#F5F5DC]/5 border-2 border-[#F5F5DC]/30">
-          <div className="text-center mb-4">
-            <Gift className="mx-auto mb-2" size={32} style={{ color: '#F5F5DC' }} />
+          <div className="text-center mb-3">
+            <Gift className="mx-auto mb-1.5" size={20} style={{ color: '#F5F5DC' }} />
             <p className="text-white/60 text-xs mb-1">Total Cashback Earned</p>
-            <p className="text-3xl font-bold mb-2" style={{ color: '#F5F5DC' }}>
+            <p className="text-xl font-bold mb-1.5" style={{ color: '#F5F5DC' }}>
               ${stats?.allTimeEarnings.toFixed(2) || '0.00'}
             </p>
             {stats && stats.weeklyEarnings > 0 && (
-              <p className="text-sm text-white/70">
+              <p className="text-xs text-white/70">
                 ${stats.weeklyEarnings.toFixed(2)} available to claim this week
               </p>
             )}
           </div>
         </GlassCard>
 
-        <div className="grid grid-cols-3 gap-3">
-          <GlassCard className="text-center">
-            <DollarSign className="mx-auto mb-2" size={24} style={{ color: '#F5F5DC' }} />
+        <div className="grid grid-cols-3 gap-2">
+          <GlassCard className="text-center p-3">
+            <DollarSign className="mx-auto mb-1.5" size={16} style={{ color: '#F5F5DC' }} />
             <p className="text-white/60 text-xs mb-1">This Week</p>
-            <p className="text-lg font-bold">${stats?.weeklyEarnings.toFixed(2) || '0.00'}</p>
+            <p className="text-sm font-bold">${stats?.weeklyEarnings.toFixed(2) || '0.00'}</p>
           </GlassCard>
-          <GlassCard className="text-center">
-            <Award className="mx-auto mb-2" size={24} style={{ color: '#F5F5DC' }} />
+          <GlassCard className="text-center p-3">
+            <Award className="mx-auto mb-1.5" size={16} style={{ color: '#F5F5DC' }} />
             <p className="text-white/60 text-xs mb-1">Available</p>
-            <p className="text-lg font-bold" style={{ color: '#F5F5DC' }}>
+            <p className="text-sm font-bold" style={{ color: '#F5F5DC' }}>
               ${stats?.weeklyEarnings.toFixed(2) || '0.00'}
             </p>
           </GlassCard>
-          <GlassCard className="text-center">
-            <Users className="mx-auto mb-2" size={24} style={{ color: '#F5F5DC' }} />
+          <GlassCard className="text-center p-3">
+            <Users className="mx-auto mb-1.5" size={16} style={{ color: '#F5F5DC' }} />
             <p className="text-white/60 text-xs mb-1">Referrals</p>
-            <p className="text-lg font-bold">{stats?.referralCount || 0}</p>
+            <p className="text-sm font-bold">{stats?.referralCount || 0}</p>
           </GlassCard>
         </div>
 
@@ -184,26 +184,26 @@ export default function ReferralsPage() {
             variant="primary"
             onClick={handleClaim}
             disabled={claiming}
-            className="w-full flex items-center justify-center gap-2"
+            className="w-full flex items-center justify-center gap-1.5 text-sm py-2"
           >
-            <Award size={20} />
+            <Award size={14} />
             {claiming ? 'Claiming...' : `Claim $${stats.weeklyEarnings.toFixed(2)}`}
           </GlassButton>
         )}
 
         <GlassCard>
-          <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-            <Trophy size={20} style={{ color: '#F5F5DC' }} />
+          <h3 className="text-sm font-semibold mb-3 flex items-center gap-1.5">
+            <Trophy size={16} style={{ color: '#F5F5DC' }} />
             Weekly Leaderboard
           </h3>
           {leaderboard.length === 0 ? (
             <p className="text-white/60 text-sm text-center py-4">No leaderboard data yet</p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {leaderboard.map((entry) => (
                 <div key={entry.rank} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                  <div className="flex items-center gap-2">
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
                       entry.rank === 1 ? 'bg-yellow-500/20 text-yellow-400' :
                       entry.rank === 2 ? 'bg-gray-400/20 text-gray-400' :
                       entry.rank === 3 ? 'bg-orange-500/20 text-orange-400' :
@@ -212,11 +212,11 @@ export default function ReferralsPage() {
                       {entry.rank}
                     </div>
                     <div>
-                      <p className="font-medium">{entry.referralCode}</p>
+                      <p className="font-medium text-sm">{entry.referralCode}</p>
                       <p className="text-white/60 text-xs">{entry.referralCount} referrals</p>
                     </div>
                   </div>
-                  <p className="font-semibold">${entry.weeklyEarnings.toFixed(2)}</p>
+                  <p className="font-semibold text-sm">${entry.weeklyEarnings.toFixed(2)}</p>
                 </div>
               ))}
             </div>
