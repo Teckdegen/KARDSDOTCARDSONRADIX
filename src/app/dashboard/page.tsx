@@ -76,7 +76,7 @@ export default function DashboardPage() {
 
   return (
     <div className="min-h-screen pb-20 pt-6 p-3 flex items-start justify-center">
-      <div className="w-full max-w-2xl mx-auto space-y-3">
+      <div className="w-full max-w-2xl mx-auto space-y-6">
         <Header title="Dashboard" showBack={false} />
 
         {/* Wallet balance + send */}
@@ -119,7 +119,7 @@ export default function DashboardPage() {
         </GlassCard>
 
         {/* Wallet transactions list */}
-        <GlassCard className="min-h-[220px]">
+        <GlassCard className="min-h-[220px] mt-2">
           <h2 className="text-sm font-semibold mb-3">Wallet Activity</h2>
           {transactions.length === 0 ? (
             <p className="text-white/60 text-sm text-center py-4">No wallet transactions yet</p>
@@ -171,13 +171,11 @@ export default function DashboardPage() {
         }}
       />
 
-      {address && (
-        <ReceiveModal
-          isOpen={receiveOpen}
-          onClose={() => setReceiveOpen(false)}
-          address={address}
-        />
-      )}
+      <ReceiveModal
+        isOpen={receiveOpen}
+        onClose={() => setReceiveOpen(false)}
+        address={address || ''}
+      />
 
       <BottomNav />
     </div>
