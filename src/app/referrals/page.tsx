@@ -112,109 +112,116 @@ export default function ReferralsPage() {
 
   return (
     <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
-      <div className="w-full max-w-2xl mx-auto space-y-3">
+      <div className="w-full max-w-4xl mx-auto space-y-6">
         <Header title="Referrals" centered />
 
-        <GlassCard className="glass-card-reduced p-4">
-          <div className="text-center">
-            <Trophy className="mx-auto mb-2" size={20} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/50 text-xs mb-2">Your Referral Code</p>
-            <p 
-              className="text-sm font-bold font-mono mb-2 bg-white/5 p-3 rounded-xl cursor-pointer"
-              onClick={copyCode}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                copyCode();
-              }}
-            >
-              {referralCode}
-            </p>
-            <p className="text-white/40 text-[10px]">Tap to copy</p>
-          </div>
-        </GlassCard>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 space-y-6">
+            <GlassCard className="glass-card-reduced p-6">
+              <div className="text-center">
+                <Trophy className="mx-auto mb-3" size={28} style={{ color: '#F5F5DC' }} />
+                <h2 className="text-xl font-bold mb-2">Your Referral Code</h2>
+                <p className="text-white/50 text-sm mb-4">Share this code to earn rewards</p>
+                <p 
+                  className="text-lg font-bold font-mono mb-3 bg-white/5 p-4 rounded-xl cursor-pointer"
+                  onClick={copyCode}
+                  onContextMenu={(e) => {
+                    e.preventDefault();
+                    copyCode();
+                  }}
+                >
+                  {referralCode}
+                </p>
+                <p className="text-white/40 text-sm">Tap to copy</p>
+              </div>
+            </GlassCard>
 
-        <GlassCard className="glass-card-reduced p-4">
-          <div className="text-center">
-            <Gift className="mx-auto mb-2" size={20} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/50 text-xs mb-1">Total Cashback Earned</p>
-            <p className="text-xl font-bold mb-1" style={{ color: '#F5F5DC' }}>
-              ${stats?.allTimeEarnings.toFixed(2) || '0.00'}
-            </p>
+            <GlassCard className="glass-card-reduced p-6">
+              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
+                <Trophy size={22} style={{ color: '#F5F5DC' }} />
+                Weekly Leaderboard
+              </h3>
+              {leaderboard.length === 0 ? (
+                <p className="text-white/50 text-center py-6">No leaderboard data yet</p>
+              ) : (
+                <div className="space-y-4">
+                  {leaderboard.map((entry) => (
+                    <div key={entry.rank} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold ${
+                          entry.rank === 1 ? 'bg-yellow-500/20 text-yellow-400' :
+                          entry.rank === 2 ? 'bg-gray-400/20 text-gray-400' :
+                          entry.rank === 3 ? 'bg-orange-500/20 text-orange-400' :
+                          'bg-white/10 text-white/60'
+                        }`}>
+                          {entry.rank}
+                        </div>
+                        <div>
+                          <p className="font-medium text-base">{entry.referralCode}</p>
+                          <p className="text-white/50 text-sm">{entry.referralCount} referrals</p>
+                        </div>
+                      </div>
+                      <p className="font-semibold text-base">${entry.weeklyEarnings.toFixed(2)}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </GlassCard>
+          </div>
+
+          <div className="space-y-6">
+            <GlassCard className="glass-card-reduced p-6">
+              <div className="text-center">
+                <Gift className="mx-auto mb-3" size={28} style={{ color: '#F5F5DC' }} />
+                <h2 className="text-xl font-bold mb-2">Total Cashback Earned</h2>
+                <p className="text-3xl font-bold my-3" style={{ color: '#F5F5DC' }}>
+                  ${stats?.allTimeEarnings.toFixed(2) || '0.00'}
+                </p>
+                {stats && stats.weeklyEarnings > 0 && (
+                  <p className="text-sm text-white/60 mt-2">
+                    ${stats.weeklyEarnings.toFixed(2)} available to claim this week
+                  </p>
+                )}
+              </div>
+            </GlassCard>
+
+            <div className="space-y-4">
+              <GlassCard className="glass-card-reduced p-5 text-center">
+                <DollarSign className="mx-auto mb-2" size={22} style={{ color: '#F5F5DC' }} />
+                <p className="text-white/50 text-sm mb-1">This Week</p>
+                <p className="text-xl font-bold">${stats?.weeklyEarnings.toFixed(2) || '0.00'}</p>
+              </GlassCard>
+              <GlassCard className="glass-card-reduced p-5 text-center">
+                <Award className="mx-auto mb-2" size={22} style={{ color: '#F5F5DC' }} />
+                <p className="text-white/50 text-sm mb-1">Available</p>
+                <p className="text-xl font-bold" style={{ color: '#F5F5DC' }}>
+                  ${stats?.weeklyEarnings.toFixed(2) || '0.00'}
+                </p>
+              </GlassCard>
+              <GlassCard className="glass-card-reduced p-5 text-center">
+                <Users className="mx-auto mb-2" size={22} style={{ color: '#F5F5DC' }} />
+                <p className="text-white/50 text-sm mb-1">Referrals</p>
+                <p className="text-xl font-bold">{stats?.referralCount || 0}</p>
+              </GlassCard>
+            </div>
+
             {stats && stats.weeklyEarnings > 0 && (
-              <p className="text-xs text-white/60 mt-2">
-                ${stats.weeklyEarnings.toFixed(2)} available to claim this week
-              </p>
+              <GlassButton
+                variant="primary"
+                onClick={handleClaim}
+                disabled={claiming}
+                className="w-full flex items-center justify-center gap-2 py-4 text-lg"
+              >
+                <Award size={20} />
+                {claiming ? 'Claiming...' : `Claim $${stats.weeklyEarnings.toFixed(2)}`}
+              </GlassButton>
             )}
           </div>
-        </GlassCard>
-
-        <div className="grid grid-cols-3 gap-2">
-          <GlassCard className="glass-card-reduced p-3 text-center">
-            <DollarSign className="mx-auto mb-1" size={16} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/50 text-[10px] mb-1">This Week</p>
-            <p className="text-sm font-bold">${stats?.weeklyEarnings.toFixed(2) || '0.00'}</p>
-          </GlassCard>
-          <GlassCard className="glass-card-reduced p-3 text-center">
-            <Award className="mx-auto mb-1" size={16} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/50 text-[10px] mb-1">Available</p>
-            <p className="text-sm font-bold" style={{ color: '#F5F5DC' }}>
-              ${stats?.weeklyEarnings.toFixed(2) || '0.00'}
-            </p>
-          </GlassCard>
-          <GlassCard className="glass-card-reduced p-3 text-center">
-            <Users className="mx-auto mb-1" size={16} style={{ color: '#F5F5DC' }} />
-            <p className="text-white/50 text-[10px] mb-1">Referrals</p>
-            <p className="text-sm font-bold">{stats?.referralCount || 0}</p>
-          </GlassCard>
         </div>
 
-        {stats && stats.weeklyEarnings > 0 && (
-          <GlassButton
-            variant="primary"
-            onClick={handleClaim}
-            disabled={claiming}
-            className="w-full flex items-center justify-center gap-2 py-3"
-          >
-            <Award size={16} />
-            {claiming ? 'Claiming...' : `Claim $${stats.weeklyEarnings.toFixed(2)}`}
-          </GlassButton>
-        )}
-
-        <GlassCard className="glass-card-reduced p-4">
-          <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
-            <Trophy size={18} style={{ color: '#F5F5DC' }} />
-            Weekly Leaderboard
-          </h3>
-          {leaderboard.length === 0 ? (
-            <p className="text-white/50 text-sm text-center py-4">No leaderboard data yet</p>
-          ) : (
-            <div className="space-y-3">
-              {leaderboard.map((entry) => (
-                <div key={entry.rank} className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-7 h-7 rounded-full flex items-center justify-center text-sm ${
-                      entry.rank === 1 ? 'bg-yellow-500/10 text-yellow-400' :
-                      entry.rank === 2 ? 'bg-gray-400/10 text-gray-400' :
-                      entry.rank === 3 ? 'bg-orange-500/10 text-orange-400' :
-                      'bg-white/5 text-white/50'
-                    }`}>
-                      {entry.rank}
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{entry.referralCode}</p>
-                      <p className="text-white/50 text-xs">{entry.referralCount} referrals</p>
-                    </div>
-                  </div>
-                  <p className="font-semibold text-sm">${entry.weeklyEarnings.toFixed(2)}</p>
-                </div>
-              ))}
-            </div>
-          )}
-        </GlassCard>
-
         {message && (
-          <GlassCard className={`glass-card-reduced p-3 ${message.includes('Successfully') ? 'bg-green-500/5 border-green-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
-            <p className={`text-sm text-center ${
+          <GlassCard className={`glass-card-reduced p-4 ${message.includes('Successfully') ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
+            <p className={`text-center text-lg ${
               message.includes('Successfully') ? 'text-green-400' : 'text-red-400'
             }`}>
               {message}

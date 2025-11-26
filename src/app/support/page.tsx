@@ -59,32 +59,34 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
-      <div className="w-full max-w-2xl mx-auto space-y-3">
+      <div className="w-full max-w-4xl mx-auto space-y-6">
         <Header title="Support" centered />
 
-        <GlassCard>
-          <div className="flex items-center gap-2 mb-4">
-            <HelpCircle size={20} style={{ color: '#F5F5DC' }} />
+        <GlassCard className="p-6">
+          <div className="flex items-center gap-3 mb-6">
+            <HelpCircle size={24} style={{ color: '#F5F5DC' }} />
             <div>
-              <h2 className="text-sm font-semibold">Contact Us</h2>
-              <p className="text-white/60 text-xs">We'll respond via email</p>
+              <h2 className="text-xl font-bold">Contact Us</h2>
+              <p className="text-white/60 text-sm">We'll respond via email</p>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <GlassInput
-              placeholder="Your name"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              required
-            />
-            <GlassInput
-              type="email"
-              placeholder="Your email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              required
-            />
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <GlassInput
+                placeholder="Your name"
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+              <GlassInput
+                type="email"
+                placeholder="Your email"
+                value={formData.email}
+                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                required
+              />
+            </div>
             <GlassInput
               placeholder="Subject"
               value={formData.subject}
@@ -95,57 +97,27 @@ export default function SupportPage() {
               placeholder="Your message"
               value={formData.message}
               onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              className="glass-input w-full min-h-[120px] resize-none"
+              className="glass-input w-full min-h-[160px] resize-none text-base"
               required
             />
             <GlassButton
               type="submit"
               disabled={loading}
               variant="primary"
-              className="w-full flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2 py-3 text-lg"
             >
-              <Mail size={16} />
+              <Mail size={20} />
               {loading ? 'Sending...' : 'Send Message'}
             </GlassButton>
           </form>
 
           {message && (
-            <p className={`mt-4 text-sm text-center ${
+            <p className={`mt-6 text-center text-lg ${
               message.includes('successfully') ? 'text-green-400' : 'text-red-400'
             }`}>
               {message}
             </p>
           )}
-        </GlassCard>
-
-        <GlassCard>
-          <h3 className="text-sm font-semibold mb-3">Frequently Asked Questions</h3>
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs font-medium mb-1">How do I create a card?</p>
-              <p className="text-white/60 text-xs">
-                Go to Cards → Create New Card, fill in the required information, and pay $25 ($10 insurance + $15 to card).
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium mb-1">What's the minimum top-up amount?</p>
-              <p className="text-white/60 text-xs">
-                The minimum top-up amount is $6 USDC. A $2.5 processing fee applies.
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium mb-1">How do referrals work?</p>
-              <p className="text-white/60 text-xs">
-                Share your referral code. You earn $0.5 for each card created with your code. Claim earnings weekly.
-              </p>
-            </div>
-            <div>
-              <p className="text-xs font-medium mb-1">How many cards can I have?</p>
-              <p className="text-white/60 text-xs">
-                You can have up to 4 cards per account.
-              </p>
-            </div>
-          </div>
         </GlassCard>
       </div>
 
@@ -153,4 +125,3 @@ export default function SupportPage() {
     </div>
   );
 }
-
