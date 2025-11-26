@@ -21,14 +21,27 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Normalize address in case it's stored as an object (legacy format)
+    let address: string | any = wallet.radix_wallet_address;
+    if (address && typeof address === 'object') {
+      const addrObj = address as any;
+      if (addrObj.value && typeof addrObj.value === 'string') {
+        address = addrObj.value;
+      } else if (addrObj.value && typeof addrObj.value === 'object' && addrObj.value.value) {
+        address = addrObj.value.value;
+      } else {
+        address = String(address);
+      }
+    }
+
     // Get USDC and XRD balances
-    const { usdc, xrd } = await getBalances(wallet.radix_wallet_address);
+    const { usdc, xrd } = await getBalances(address);
 
     return NextResponse.json({
       success: true,
       balance: usdc, // USDC balance (primary)
       xrdBalance: xrd, // XRD balance (for gas)
-      address: wallet.radix_wallet_address,
+      address,
     });
   } catch (error: any) {
     if (error.message === 'Unauthorized') {
