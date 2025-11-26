@@ -6,7 +6,7 @@ import BottomNav from '@/components/BottomNav';
 import GlassCard from '@/components/GlassCard';
 import GlassButton from '@/components/GlassButton';
 import Header from '@/components/Header';
-import { ArrowUpRight } from 'lucide-react';
+import { ArrowUpRight, Download } from 'lucide-react';
 import SendModal from '@/components/SendModal';
 import ReceiveModal from '@/components/ReceiveModal';
 
@@ -39,7 +39,7 @@ export default function DashboardPage() {
       return;
     }
 
-    Promise.all([fetchBalance(), fetchTransactions()]).finally(() => setLoading(false));
+    Promise.all([fetchBalance(), fetchTransactions(), fetchAddress()]).finally(() => setLoading(false));
   }, [router]);
 
   const fetchBalance = async () => {
@@ -52,10 +52,24 @@ export default function DashboardPage() {
       if (data.success) {
         setBalance(data.balance || 0);
         setXrdBalance(data.xrdBalance || 0);
-        setAddress(data.address || null);
       }
     } catch (e) {
       console.error('Error fetching wallet balance:', e);
+    }
+  };
+
+  const fetchAddress = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await fetch('/api/wallet/address', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await res.json();
+      if (data.success) {
+        setAddress(data.address || null);
+      }
+    } catch (e) {
+      console.error('Error fetching wallet address:', e);
     }
   };
 
@@ -113,13 +127,14 @@ export default function DashboardPage() {
               className="flex-1 flex items-center justify-center gap-2 text-sm"
               onClick={() => setReceiveOpen(true)}
             >
+              <Download size={16} />
               Receive
             </GlassButton>
           </div>
         </GlassCard>
 
         {/* Wallet transactions list */}
-        <GlassCard className="min-h-[220px] mt-2">
+        <GlassCard className="min-h-[220px] mt-6">
           <h2 className="text-sm font-semibold mb-3">Wallet Activity</h2>
           {transactions.length === 0 ? (
             <p className="text-white/60 text-sm text-center py-4">No wallet transactions yet</p>
@@ -181,4 +196,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-

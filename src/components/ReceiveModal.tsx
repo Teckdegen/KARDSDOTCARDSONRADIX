@@ -19,7 +19,7 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
   useEffect(() => {
     if (isOpen && address) {
       QRCode.toDataURL(address, {
-        width: 360,
+        width: 480,
         margin: 2,
         color: {
           dark: '#F5F5DC',
@@ -30,9 +30,11 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
   }, [isOpen, address]);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(address);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (address) {
+      navigator.clipboard.writeText(address);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   if (!isOpen) return null;
@@ -61,35 +63,37 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
           <p className="text-white/60 text-xs">Share this address to receive funds</p>
         </div>
 
-        {qrCode && (
+        {qrCode && address && (
           <div className="flex justify-center mb-6">
             <div className="glass-card p-4 rounded-2xl">
-              <img src={qrCode} alt="QR Code" className="w-64 h-64" />
+              <img src={qrCode} alt="QR Code" className="w-80 h-80" />
             </div>
           </div>
         )}
 
-        <GlassCard className="bg-white/5">
-          <p className="text-white/70 text-xs mb-2 font-medium">Wallet Address</p>
-          <p className="text-xs break-all font-mono mb-3 leading-relaxed text-white/80">{address}</p>
-          <GlassButton
-            variant="secondary"
-            onClick={copyAddress}
-            className="w-full flex items-center justify-center gap-2"
-          >
-            {copied ? (
-              <>
-                <Check size={14} />
-                Copied!
-              </>
-            ) : (
-              <>
-                <Copy size={14} />
-                Copy Address
-              </>
-            )}
-          </GlassButton>
-        </GlassCard>
+        {address && (
+          <GlassCard className="bg-white/5">
+            <p className="text-white/70 text-xs mb-2 font-medium">Wallet Address</p>
+            <p className="text-xs break-all font-mono mb-3 leading-relaxed text-white/80">{address}</p>
+            <GlassButton
+              variant="secondary"
+              onClick={copyAddress}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              {copied ? (
+                <>
+                  <Check size={14} />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy size={14} />
+                  Copy Address
+                </>
+              )}
+            </GlassButton>
+          </GlassCard>
+        )}
       </GlassCard>
     </div>
   );
