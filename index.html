@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Card Scanner Effect</title>
+    <link rel="stylesheet" href="background.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Your existing styles here */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Rest of your existing styles */
+        /* ... */
+    </style>
+</head>
+<body>
+    <div class="background-container">
+        <div class="background-image"></div>
+        <div class="overlay"></div>
+    </div>
+
+    <div class="content">
+        <div class="card-stream" id="cardStream">
+            <div class="card-line" id="cardLine"></div>
+        </div>
+
+        <canvas id="particleCanvas"></canvas>
+        <canvas id="scannerCanvas"></canvas>
+    </div>
+
+    <div class="inspiration-credit">
+        Inspired by
+        <a href="https://evervault.com/" target="_blank">@evervault.com</a>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
