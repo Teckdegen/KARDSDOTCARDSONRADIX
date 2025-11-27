@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import GlassCard from './GlassCard';
 import GlassButton from './GlassButton';
-import { X, QrCode, Copy, Check } from 'lucide-react';
+import { X, QrCode } from 'lucide-react';
 import QRCode from 'qrcode';
 
 interface ReceiveModalProps {
@@ -74,24 +74,16 @@ export default function ReceiveModal({ isOpen, onClose, address }: ReceiveModalP
         {address && (
           <GlassCard className="bg-white/5">
             <p className="text-white/70 text-xs mb-2 font-medium">Wallet Address</p>
-            <p className="text-xs break-all font-mono mb-3 leading-relaxed text-white/80">{address}</p>
-            <GlassButton
-              variant="secondary"
+            <p 
+              className="text-xs break-all font-mono leading-relaxed text-white/80 cursor-pointer hover:text-[#F5F5DC] transition-colors select-all"
               onClick={copyAddress}
-              className="w-full flex items-center justify-center gap-2"
+              title="Tap to copy"
             >
-              {copied ? (
-                <>
-                  <Check size={14} />
-                  Copied!
-                </>
-              ) : (
-                <>
-                  <Copy size={14} />
-                  Copy Address
-                </>
-              )}
-            </GlassButton>
+              {address}
+            </p>
+            {copied && (
+              <p className="text-xs text-center mt-2 text-green-400 font-medium">Copied!</p>
+            )}
           </GlassCard>
         )}
       </GlassCard>
