@@ -29,16 +29,23 @@ export default function Header({
 
   if (centered) {
     return (
-      <div className="flex items-center justify-center gap-2 pt-6 pb-4 fade-in">
-        {title && (
-          <h1 className="text-lg font-bold" style={{ color: '#F5F5DC' }}>{title}</h1>
+      <div className="flex items-center justify-start gap-2 pt-6 pb-2 fade-in">
+        {showBack && (
+          <button
+            onClick={handleBack}
+            className="w-5 h-5 rounded-md flex items-center justify-center glass-card hover:bg-white/10 transition-colors"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={10} className="text-white/70" />
+          </button>
         )}
+        {/* Title intentionally hidden */}
       </div>
     );
   }
 
   return (
-    <div className="flex items-center justify-between pt-6 pb-4 fade-in">
+    <div className="flex items-center justify-between pt-6 pb-2 fade-in">
       <div className="flex items-center gap-2">
         {showBack && (
           <button
@@ -49,9 +56,7 @@ export default function Header({
             <ArrowLeft size={10} className="text-white/70" />
           </button>
         )}
-        {title && (
-          <h1 className="text-lg font-bold" style={{ color: '#F5F5DC' }}>{title}</h1>
-        )}
+        {/* Title intentionally hidden */}
       </div>
       {rightAction && (
         <div>{rightAction}</div>
