@@ -122,7 +122,8 @@ export default function ReferralsPage() {
         <Header title="Referrals" centered />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-6">
+          {/* On mobile, show cashback/stats first, then code + leaderboard */}
+          <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
             <GlassCard className="glass-card-reduced p-6">
               <div className="text-center">
                 <Trophy className="mx-auto mb-3" size={28} style={{ color: '#F5F5DC' }} />
@@ -175,7 +176,7 @@ export default function ReferralsPage() {
             </GlassCard>
           </div>
 
-          <div className="space-y-6">
+          <div className="space-y-6 order-1 lg:order-2">
             <GlassCard className="glass-card-reduced p-6">
               <div className="text-center">
                 <Gift className="mx-auto mb-3" size={28} style={{ color: '#F5F5DC' }} />
