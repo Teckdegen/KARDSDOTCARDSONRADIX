@@ -225,6 +225,19 @@ body::before {
   transform: translateY(-1px);
 }
 
+/* Select dropdown styling */
+select.glass-input {
+  color: rgba(255, 255, 255, 0.9);
+  background-color: rgba(10, 14, 39, 0.8);
+  cursor: pointer;
+}
+
+select.glass-input option {
+  background-color: rgba(10, 14, 39, 0.95);
+  color: rgba(255, 255, 255, 0.9);
+  padding: 8px;
+}
+
 .glass-button {
   background: rgba(255, 255, 255, 0.03);
   backdrop-filter: blur(20px) saturate(150%);
