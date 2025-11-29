@@ -65,7 +65,7 @@ export default function CreateCardPage() {
   const totalAmount = 25; // $10 insurance + $15 to card
 
   const nextStep = () => {
-    if (step < 4) setStep(step + 1);
+    if (step < 2) setStep(step + 1);
   };
 
   const prevStep = () => {
@@ -82,7 +82,7 @@ export default function CreateCardPage() {
         <Header title="Create Card" showBack backUrl="/cards" />
 
         <div className="step-indicator">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2].map((i) => (
             <div
               key={i}
               className={`step-dot ${step === i ? 'active' : ''}`}
@@ -92,29 +92,8 @@ export default function CreateCardPage() {
 
         <form onSubmit={handleCreateCard}>
           <GlassCard className="glass-card-reduced p-6 step-form-container">
-            {/* Step 1: Phone and Date of Birth */}
+            {/* Step 1: Card Details */}
             {step === 1 && (
-              <div className="step-form-content">
-                <h2 className="text-xl font-bold mb-6 text-center">Contact Information</h2>
-                <div className="space-y-4">
-                  <p className="text-white/60 text-sm text-center">Contact information will be generated automatically</p>
-
-                </div>
-              </div>
-            )}
-
-            {/* Step 2: Address Information */}
-            {step === 2 && (
-              <div className="step-form-content">
-                <h2 className="text-xl font-bold mb-6 text-center">Address Information</h2>
-                <div className="space-y-4">
-                  <p className="text-white/60 text-sm text-center">Address information will be generated automatically</p>
-                </div>
-              </div>
-            )}
-
-            {/* Step 3: Card Details */}
-            {step === 3 && (
               <div className="step-form-content">
                 <h2 className="text-xl font-bold mb-6 text-center">Card Details</h2>
                 <div className="space-y-4">
@@ -140,8 +119,8 @@ export default function CreateCardPage() {
               </div>
             )}
 
-            {/* Step 4: Payment and Confirmation */}
-            {step === 4 && (
+            {/* Step 2: Payment and Confirmation */}
+            {step === 2 && (
               <div className="step-form-content">
                 <h2 className="text-xl font-bold mb-6 text-center">Payment Details</h2>
                 <div className="space-y-4">
@@ -205,7 +184,7 @@ export default function CreateCardPage() {
                 </GlassButton>
               )}
 
-              {step < 4 ? (
+              {step < 2 ? (
                 <GlassButton
                   type="button"
                   variant="primary"
