@@ -2,11 +2,14 @@ import CryptoJS from 'crypto-js';
 
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
 
-// Generate unique request ID
+// Generate unique request ID (starts with KARDS, followed by alphanumeric only)
 export function generateRequestId(): string {
-  const timestamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0];
-  const random = Math.random().toString(36).substring(2, 8).toUpperCase();
-  return `req-${timestamp}-${random}`;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let randomPart = '';
+  for (let i = 0; i < 12; i++) {
+    randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return `KARDS${randomPart}`;
 }
 
 // Encrypt data
