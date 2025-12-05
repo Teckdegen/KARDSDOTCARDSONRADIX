@@ -49,7 +49,7 @@ body {
     radial-gradient(circle at 50% 50%, rgba(245, 245, 220, 0.03) 0%, transparent 60%),
     linear-gradient(135deg, rgba(10, 14, 39, 0.8) 0%, rgba(15, 20, 45, 0.9) 100%);
   color: var(--foreground);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
+  font-family: 'Comic Neue', 'Bangers', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
   min-height: 100vh;
   height: 100vh;
   overflow-x: hidden;
@@ -58,6 +58,7 @@ body {
   -webkit-tap-highlight-color: transparent;
   font-size: 16px;
   position: relative;
+  font-weight: 700;
 }
 
 body::before {
@@ -80,23 +81,76 @@ body::before {
   }
 }
 
-/* iOS-style Glassmorphism */
+/* Comic Action Figure Style */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'Bangers', 'Comic Neue', sans-serif;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.8);
+  text-stroke: 2px rgba(0, 0, 0, 0.8);
+  text-shadow: 
+    3px 3px 0px rgba(0, 0, 0, 0.9),
+    5px 5px 0px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(255, 255, 255, 0.3);
+  color: var(--accent);
+}
+
+p, span, div, label, input, textarea, select, button {
+  font-family: 'Comic Neue', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+label {
+  color: var(--accent);
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.7),
+    2px 2px 4px rgba(0, 0, 0, 0.5);
+  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.6);
+  text-stroke: 0.5px rgba(0, 0, 0, 0.6);
+  font-size: 16px;
+}
+
+p, span {
+  color: rgba(255, 255, 255, 0.9);
+  text-shadow: 
+    1px 1px 2px rgba(0, 0, 0, 0.6),
+    0 0 5px rgba(245, 245, 220, 0.2);
+}
+
+/* Make numbers and amounts stand out */
+.amount, .balance, .price {
+  font-family: 'Bangers', 'Comic Neue', sans-serif;
+  color: var(--accent);
+  font-weight: 700;
+  text-shadow: 
+    2px 2px 0px rgba(0, 0, 0, 0.8),
+    4px 4px 0px rgba(0, 0, 0, 0.5),
+    0 0 10px rgba(245, 245, 220, 0.4);
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.7);
+  text-stroke: 1.5px rgba(0, 0, 0, 0.7);
+  letter-spacing: 0.03em;
+}
+
+/* iOS-style Glassmorphism with Comic Twist */
 .glass {
   background: var(--glass-bg);
   backdrop-filter: blur(30px) saturate(180%);
   -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 0.5px solid var(--glass-border);
+  border: 3px solid var(--glass-border);
   border-radius: 20px;
   box-shadow: 
     0 8px 32px 0 rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1);
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
+    0 0 20px rgba(245, 245, 220, 0.2);
 }
 
 .glass-card {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
   backdrop-filter: blur(60px) saturate(180%);
   -webkit-backdrop-filter: blur(60px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 4px solid rgba(245, 245, 220, 0.6);
   border-radius: 32px;
   padding: 32px;
   box-shadow: 
@@ -104,7 +158,8 @@ body::before {
     0 8px 24px 0 rgba(0, 0, 0, 0.3),
     inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
     inset 0 -1px 0 0 rgba(255, 255, 255, 0.05),
-    0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 0 0 2px rgba(245, 245, 220, 0.3),
+    0 0 30px rgba(245, 245, 220, 0.2);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -114,7 +169,7 @@ body::before {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
   backdrop-filter: blur(40px) saturate(150%);
   -webkit-backdrop-filter: blur(40px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 3px solid rgba(245, 245, 220, 0.5);
   border-radius: 24px;
   padding: 24px;
   box-shadow: 
@@ -122,7 +177,8 @@ body::before {
     0 4px 12px 0 rgba(0, 0, 0, 0.2),
     inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
     inset 0 -1px 0 0 rgba(255, 255, 255, 0.03),
-    0 0 0 1px rgba(255, 255, 255, 0.03);
+    0 0 0 2px rgba(245, 245, 220, 0.25),
+    0 0 20px rgba(245, 245, 220, 0.15);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
@@ -182,23 +238,29 @@ body::before {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
   backdrop-filter: blur(25px) saturate(150%);
   -webkit-backdrop-filter: blur(25px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 3px solid rgba(245, 245, 220, 0.5);
   border-radius: 16px;
   padding: 14px 16px;
-  color: rgba(255, 255, 255, 0.75);
+  color: var(--accent);
   font-size: 16px;
-  font-weight: 400;
+  font-weight: 700;
+  font-family: 'Comic Neue', sans-serif;
+  letter-spacing: 0.02em;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   width: 100%;
   -webkit-appearance: none;
   appearance: none;
   box-shadow: 
     inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    0 0 15px rgba(245, 245, 220, 0.2);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 .glass-input:focus {
-  color: rgba(255, 255, 255, 0.85);
+  color: var(--accent);
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.6);
+  text-stroke: 1px rgba(0, 0, 0, 0.6);
 }
 
 @media (max-width: 768px) {
@@ -209,45 +271,54 @@ body::before {
 }
 
 .glass-input::placeholder {
-  color: rgba(255, 255, 255, 0.15);
-  opacity: 0.4;
+  color: rgba(245, 245, 220, 0.4);
+  opacity: 0.6;
+  font-weight: 700;
 }
 
 .glass-input:focus {
   outline: none;
-  border-color: rgba(245, 245, 220, 0.5);
+  border-color: var(--accent);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%);
   box-shadow: 
-    0 0 0 3px rgba(245, 245, 220, 0.15),
-    0 4px 16px rgba(245, 245, 220, 0.2),
+    0 0 0 4px rgba(245, 245, 220, 0.3),
+    0 4px 16px rgba(245, 245, 220, 0.4),
     inset 0 1px 2px rgba(255, 255, 255, 0.2),
-    0 2px 12px rgba(0, 0, 0, 0.2);
-  transform: translateY(-1px);
+    0 2px 12px rgba(0, 0, 0, 0.2),
+    0 0 25px rgba(245, 245, 220, 0.3);
+  transform: translateY(-2px) scale(1.02);
 }
 
 /* Select dropdown styling */
 select.glass-input {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--accent);
   background-color: rgba(10, 14, 39, 0.8);
   cursor: pointer;
+  font-weight: 700;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 select.glass-input option {
   background-color: rgba(10, 14, 39, 0.95);
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--accent);
   padding: 8px;
+  font-weight: 700;
+  font-family: 'Comic Neue', sans-serif;
 }
 
 .glass-button {
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(135deg, rgba(245, 245, 220, 0.2) 0%, rgba(245, 245, 220, 0.15) 100%);
   backdrop-filter: blur(20px) saturate(150%);
   -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 4px solid var(--accent);
   border-radius: 16px;
   padding: 16px 28px;
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
-  font-size: 16px;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 18px;
+  font-family: 'Bangers', 'Comic Neue', sans-serif;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
@@ -255,8 +326,15 @@ select.glass-input option {
   -webkit-tap-highlight-color: transparent;
   user-select: none;
   box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 20px rgba(245, 245, 220, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    3px 3px 0px rgba(0, 0, 0, 0.5);
+  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.8);
+  text-stroke: 1.5px rgba(0, 0, 0, 0.8);
+  text-shadow: 
+    2px 2px 0px rgba(0, 0, 0, 0.9),
+    4px 4px 0px rgba(0, 0, 0, 0.5);
 }
 
 @media (max-width: 768px) {
@@ -268,30 +346,47 @@ select.glass-input option {
 }
 
 .glass-button:active {
-  transform: scale(0.98);
-  opacity: 0.9;
+  transform: scale(0.95) translateY(2px);
+  box-shadow: 
+    0 2px 6px rgba(0, 0, 0, 0.3),
+    0 0 15px rgba(245, 245, 220, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    1px 1px 0px rgba(0, 0, 0, 0.5);
 }
 
 .glass-button:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(135deg, rgba(245, 245, 220, 0.3) 0%, rgba(245, 245, 220, 0.25) 100%);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 
+    0 6px 16px rgba(0, 0, 0, 0.4),
+    0 0 30px rgba(245, 245, 220, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    4px 4px 0px rgba(0, 0, 0, 0.6);
+  transform: translateY(-2px) scale(1.05);
 }
 
 .glass-button-primary {
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, rgba(245, 245, 220, 0.25) 0%, rgba(245, 245, 220, 0.2) 100%);
+  color: var(--accent);
+  border: 4px solid var(--accent);
   box-shadow: 
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 4px 12px rgba(0, 0, 0, 0.3),
+    0 0 25px rgba(245, 245, 220, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    3px 3px 0px rgba(0, 0, 0, 0.5);
   position: relative;
 }
 
 .glass-button-primary:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.15);
-  color: rgba(255, 255, 255, 0.85);
+  background: linear-gradient(135deg, rgba(245, 245, 220, 0.35) 0%, rgba(245, 245, 220, 0.3) 100%);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 
+    0 6px 16px rgba(0, 0, 0, 0.4),
+    0 0 35px rgba(245, 245, 220, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    4px 4px 0px rgba(0, 0, 0, 0.6);
 }
 
 .glass-button:disabled {
@@ -308,19 +403,24 @@ select.glass-input option {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
   backdrop-filter: blur(25px) saturate(150%);
   -webkit-backdrop-filter: blur(25px) saturate(150%);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  border: 3px solid rgba(245, 245, 220, 0.6);
   border-radius: 18px;
   text-align: center;
-  font-size: 28px;
-  font-weight: 600;
-  color: rgba(255, 255, 255, 0.75);
+  font-size: 32px;
+  font-weight: 700;
+  font-family: 'Bangers', 'Comic Neue', sans-serif;
+  color: var(--accent);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   caret-color: var(--accent);
   -webkit-appearance: none;
   appearance: none;
   box-shadow: 
     inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.1);
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    0 0 15px rgba(245, 245, 220, 0.3);
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.7);
+  text-stroke: 1px rgba(0, 0, 0, 0.7);
 }
 
 .code-input-box:focus {
@@ -337,14 +437,15 @@ select.glass-input option {
 
 .code-input-box:focus {
   outline: none;
-  border-color: rgba(245, 245, 220, 0.5);
+  border-color: var(--accent);
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
-  transform: scale(1.08);
+  transform: scale(1.1);
   box-shadow: 
-    0 0 0 3px rgba(245, 245, 220, 0.2),
-    0 4px 16px rgba(245, 245, 220, 0.25),
+    0 0 0 4px rgba(245, 245, 220, 0.3),
+    0 4px 16px rgba(245, 245, 220, 0.4),
     inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    0 2px 12px rgba(0, 0, 0, 0.2);
+    0 2px 12px rgba(0, 0, 0, 0.2),
+    0 0 25px rgba(245, 245, 220, 0.5);
 }
 
 /* Smooth scrolling */
@@ -361,8 +462,9 @@ html {
 
 /* iOS-style selection */
 ::selection {
-  background: rgba(245, 245, 220, 0.3);
-  color: var(--foreground);
+  background: rgba(245, 245, 220, 0.4);
+  color: #000;
+  text-shadow: none;
 }
 
 /* Focus visible - iOS style */
@@ -544,7 +646,11 @@ button, .glass-button {
 }
 
 .step-dot.active {
-  background: #F5F5DC;
+  background: var(--accent);
+  box-shadow: 
+    0 0 10px rgba(245, 245, 220, 0.6),
+    0 0 20px rgba(245, 245, 220, 0.4);
+  border: 2px solid rgba(0, 0, 0, 0.5);
 }
 
 /* Animated card scanner background */
