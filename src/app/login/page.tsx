@@ -61,7 +61,7 @@ export default function LoginPage() {
         setCodeSentAt(new Date());
         startCountdown(600); // 10 minutes = 600 seconds
         setNotification({ message: 'Code sent! Check your email', type: 'success' });
-        
+
         // Auto-resend after 10 minutes
         if (autoResendTimeoutRef.current) {
           clearTimeout(autoResendTimeoutRef.current);
@@ -94,11 +94,11 @@ export default function LoginPage() {
       if (data.success) {
         setCodeSentAt(new Date());
         startCountdown(600); // Reset countdown to 10 minutes
-        setNotification({ 
-          message: isAutoResend ? 'Code automatically resent! Check your email' : 'New code sent! Check your email', 
-          type: 'success' 
+        setNotification({
+          message: isAutoResend ? 'Code automatically resent! Check your email' : 'New code sent! Check your email',
+          type: 'success'
         });
-        
+
         // Schedule next auto-resend
         if (autoResendTimeoutRef.current) {
           clearTimeout(autoResendTimeoutRef.current);
@@ -160,87 +160,89 @@ export default function LoginPage() {
 
   return (
     <div className="h-screen w-screen flex items-center justify-center p-4 fade-in fixed inset-0">
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl">
-        <GlassCard className="fade-in">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center mb-6">
-              <Logo size={100} className="rounded-3xl" />
+      {/* 
+         MoonPay Style Centered Widget 
+         - Constrained width
+         - Clean spacing
+      */}
+      <div className="w-full max-w-[440px] relative z-20">
+        <GlassCard className="fade-in !p-8 md:!p-10 !border-[#F5F5DC]/10">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center mb-6 shadow-2xl rounded-3xl">
+              <Logo size={80} className="rounded-3xl" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2" style={{ color: 'rgba(245, 245, 220, 0.6)' }}>Welcome back</h1>
-            <p className="text-white/40 text-sm md:text-base">Sign in to continue</p>
+            <h1 className="text-2xl font-bold mb-2 tracking-tight" style={{ color: '#F5F5DC' }}>Welcome back</h1>
+            <p className="text-white/40 text-sm font-medium">Sign in to manage your cards</p>
           </div>
 
           {step === 'email' ? (
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div>
-                <label className="text-white/50 text-sm md:text-base mb-2 block font-medium flex items-center gap-2">
-                  <Mail size={16} className="md:w-4 md:h-4 opacity-60" />
-                  Email address
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#F5F5DC]/70 mb-2 block ml-1">
+                  Email Address
                 </label>
                 <GlassInput
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="name@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  className="!bg-black/20 !border-white/10 focus:!border-[#F5F5DC]/50 !text-lg"
                 />
               </div>
-              <div className="pt-14">
+              <div className="pt-6">
                 <GlassButton
                   onClick={handleSendCode}
                   disabled={loading}
                   variant="primary"
-                  className="w-full flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 !py-4 !text-[15px] !font-bold hover:!transform-none hover:brightness-110 active:scale-[0.98] transition-all"
                 >
-                  {loading ? 'Sending...' : (
-                    <>
-                      Send Code <ArrowRight size={18} className="md:w-5 md:h-5" />
-                    </>
-                  )}
+                  {loading ? 'Sending Code...' : 'Continue'}
                 </GlassButton>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
-              <div>
-                <label className="text-white/50 text-sm md:text-base mb-4 block font-medium flex items-center gap-2 justify-center">
-                  <Lock size={16} className="md:w-4 md:h-4 opacity-60" />
-                  Verification Code
+              <div className="text-center">
+                <label className="text-xs font-semibold uppercase tracking-wider text-[#F5F5DC]/70 mb-4 block">
+                  Enter Verification Code
                 </label>
-                <CodeInput
-                  length={6}
-                  value={code}
-                  onChange={(newCode) => setCode(newCode)}
-                  onComplete={(completeCode) => {
-                    setCode(completeCode);
-                    handleVerifyCode();
-                  }}
-                />
-                <p className="text-white/30 text-xs md:text-sm text-center mt-4">Enter the 6-digit code sent to your email</p>
+                <div className="flex justify-center my-6">
+                  <CodeInput
+                    length={6}
+                    value={code}
+                    onChange={(newCode) => setCode(newCode)}
+                    onComplete={(completeCode) => {
+                      setCode(completeCode);
+                      handleVerifyCode();
+                    }}
+                  />
+                </div>
+                <p className="text-white/30 text-xs mt-4">
+                  We sent a 6-digit code to <span className="text-white/60">{email}</span>
+                </p>
               </div>
-              <div className="pt-14">
+
+              <div className="pt-4">
                 <GlassButton
                   onClick={handleVerifyCode}
                   disabled={loading || code.length !== 6}
                   variant="primary"
-                  className="w-full flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 !py-4 !text-[15px] !font-bold"
                 >
-                  {loading ? 'Verifying...' : (
-                    <>
-                      Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
-                    </>
-                  )}
+                  {loading ? 'Verifying...' : 'Sign In'}
                 </GlassButton>
               </div>
-              <div className="pt-4 space-y-2">
+
+              <div className="pt-2 flex flex-col gap-3">
                 <button
                   onClick={() => handleResendCode(false)}
                   disabled={loading || resendCountdown > 0}
-                  className="text-white/60 text-sm hover:text-white/80 transition-all duration-300 w-full text-center flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-white/40 text-xs font-medium hover:text-white/80 transition-all duration-200 flex items-center justify-center gap-2 disabled:opacity-50"
                 >
-                  <RefreshCw size={14} className={resendCountdown > 0 ? 'animate-spin' : ''} />
-                  {resendCountdown > 0 
-                    ? `Resend code in ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, '0')}`
-                    : 'Resend Code'
+                  <RefreshCw size={12} className={resendCountdown > 0 ? 'animate-spin' : ''} />
+                  {resendCountdown > 0
+                    ? `Resend available in ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, '0')}`
+                    : 'Resend code'
                   }
                 </button>
                 <button
@@ -248,24 +250,20 @@ export default function LoginPage() {
                     setStep('email');
                     setCode('');
                     setResendCountdown(0);
-                    if (countdownIntervalRef.current) {
-                      clearInterval(countdownIntervalRef.current);
-                    }
-                    if (autoResendTimeoutRef.current) {
-                      clearTimeout(autoResendTimeoutRef.current);
-                    }
+                    if (countdownIntervalRef.current) clearInterval(countdownIntervalRef.current);
+                    if (autoResendTimeoutRef.current) clearTimeout(autoResendTimeoutRef.current);
                   }}
-                  className="text-white/60 text-sm hover:text-white/80 transition-all duration-300 w-full text-center"
+                  className="text-white/40 text-xs font-medium hover:text-white/80 transition-all duration-200"
                 >
-                  Back to email
+                  Change email address
                 </button>
               </div>
             </div>
           )}
 
-          <div className="mt-8 text-center">
-            <Link href="/register" className="text-white/40 text-xs md:text-sm hover:text-white/60 transition-all duration-300 inline-flex items-center gap-2 group">
-              Don't have an account? <span className="text-[rgba(245,245,220,0.5)] group-hover:text-[rgba(245,245,220,0.7)] group-hover:underline">Sign up</span>
+          <div className="mt-8 pt-6 border-t border-white/5 text-center">
+            <Link href="/register" className="text-white/40 text-xs font-medium hover:text-white/60 transition-all duration-200">
+              Don't have an account? <span className="text-[#F5F5DC] ml-1">Sign up</span>
             </Link>
           </div>
         </GlassCard>

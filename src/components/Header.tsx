@@ -10,12 +10,12 @@ interface HeaderProps {
   centered?: boolean;
 }
 
-export default function Header({ 
-  title, 
-  showBack = false, 
+export default function Header({
+  title,
+  showBack = false,
   backUrl,
   rightAction,
-  centered = false 
+  centered = false
 }: HeaderProps) {
   const router = useRouter();
 
@@ -45,21 +45,39 @@ export default function Header({
   }
 
   return (
-    <div className="flex items-center justify-between pt-6 pb-2 fade-in">
-      <div className="flex items-center gap-2">
-        {showBack && (
+    <div className="flex items-center justify-between pt-6 pb-4 fade-in">
+      <div className="flex items-center gap-3">
+        {showBack ? (
           <button
             onClick={handleBack}
-            className="w-5 h-5 rounded-md flex items-center justify-center glass-card hover:bg-white/10 transition-colors"
+            className="w-10 h-10 rounded-full flex items-center justify-center glass-card hover:bg-white/10 transition-colors border border-white/5"
             aria-label="Go back"
           >
-            <ArrowLeft size={10} className="text-white/70" />
+            <ArrowLeft size={18} className="text-white" />
           </button>
+        ) : (
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#F5F5DC] to-white/80 flex items-center justify-center shadow-lg shadow-[#F5F5DC]/10">
+            <span className="text-[#0A0E27] font-bold text-sm">JD</span>
+          </div>
         )}
-        {/* Title intentionally hidden */}
+        {title && !centered && (
+          <div className="flex flex-col">
+            <span className="text-white/40 text-[10px] font-bold uppercase tracking-wider">Welcome back</span>
+            <h1 className="text-lg font-bold text-white leading-tight">{title}</h1>
+          </div>
+        )}
       </div>
-      {rightAction && (
+
+      {rightAction ? (
         <div>{rightAction}</div>
+      ) : (
+        !centered && (
+          <button className="w-10 h-10 rounded-full flex items-center justify-center glass-card hover:bg-white/10 transition-colors border border-white/5 relative">
+            <div className="absolute top-3 right-3 w-2 h-2 bg-red-500 rounded-full border border-[#0A0E27]" />
+            {/* Bell icon would be here, assuming it is passed or imported. using a simple svg fallback if needed or just empty for now if I cant import */}
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" /></svg>
+          </button>
+        )
       )}
     </div>
   );

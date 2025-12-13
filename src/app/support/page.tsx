@@ -59,66 +59,80 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
-      <div className="w-full max-w-4xl mx-auto space-y-6">
+      <div className="w-full max-w-[440px] mx-auto space-y-6">
         <Header title="Support" centered />
 
-        <GlassCard className="p-6">
-          <div className="flex items-center gap-3 mb-6">
-            <HelpCircle size={24} style={{ color: '#F5F5DC' }} />
-            <div>
-              <h2 className="text-xl font-bold">Contact Us</h2>
-              <p className="text-white/60 text-sm">We'll respond via email</p>
+        <div className="space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto border border-white/5">
+              <HelpCircle size={32} className="text-[#F5F5DC]" />
             </div>
+            <h2 className="text-xl font-bold text-white">How can we help?</h2>
+            <p className="text-white/40 text-xs">Send us a message and we'll reply via email</p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <GlassInput
-                placeholder="Your name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
-              <GlassInput
-                type="email"
-                placeholder="Your email"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                required
-              />
-            </div>
-            <GlassInput
-              placeholder="Subject"
-              value={formData.subject}
-              onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-              required
-            />
-            <textarea
-              placeholder="Your message"
-              value={formData.message}
-              onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-              className="glass-input w-full min-h-[160px] resize-none text-base"
-              required
-            />
-            <GlassButton
-              type="submit"
-              disabled={loading}
-              variant="primary"
-              className="w-full flex items-center justify-center gap-2 py-3 text-lg"
-            >
-              <Mail size={20} />
-              {loading ? 'Sending...' : 'Send Message'}
-            </GlassButton>
-          </form>
+          <GlassCard className="!p-6 !gap-4 bg-[#0F142D]/50 border border-white/5 !rounded-[32px]">
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <div>
+                <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">Your Name</label>
+                <GlassInput
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">Email Address</label>
+                <GlassInput
+                  type="email"
+                  placeholder="john@example.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">Subject</label>
+                <GlassInput
+                  placeholder="e.g. Transaction Issue"
+                  value={formData.subject}
+                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  required
+                />
+              </div>
+              <div>
+                <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">Message</label>
+                <textarea
+                  placeholder="Describe your issue detailed..."
+                  value={formData.message}
+                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  className="w-full bg-black/20 border border-white/10 rounded-2xl p-4 text-white text-base placeholder-white/20 focus:outline-none focus:border-[#F5F5DC]/50 transition-colors min-h-[120px] resize-none"
+                  required
+                />
+              </div>
+
+              <GlassButton
+                type="submit"
+                disabled={loading}
+                variant="primary"
+                className="w-full flex items-center justify-center gap-2 !py-4 !text-base !font-bold mt-2"
+              >
+                <Mail size={18} />
+                {loading ? 'Sending...' : 'Send Message'}
+              </GlassButton>
+            </form>
+          </GlassCard>
 
           {message && (
-            <p className={`mt-6 text-center text-lg ${
-              message.includes('successfully') ? 'text-green-400' : 'text-red-400'
-            }`}>
+            <div className={`p-4 rounded-2xl text-center text-sm font-medium ${message.includes('successfully')
+                ? 'bg-green-500/10 text-green-400 border border-green-500/20'
+                : 'bg-red-500/10 text-red-400 border border-red-500/20'
+              }`}>
               {message}
-            </p>
+            </div>
           )}
-        </GlassCard>
+        </div>
       </div>
 
       <BottomNav />

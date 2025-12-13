@@ -85,21 +85,20 @@ body::before {
 h1, h2, h3, h4, h5, h6 {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
   font-weight: 700;
-  letter-spacing: 0.01em;
+  letter-spacing: -0.02em; /* Tighter tracking for modern look */
   text-transform: none;
   color: var(--accent);
-  text-shadow: 
-    1px 1px 2px rgba(0, 0, 0, 0.5),
-    0 0 5px rgba(245, 245, 220, 0.2);
+  text-shadow: none; /* Removed heavy shadow for cleaner look */
 }
 
-p, span, div, label, input, textarea, select {
-  font-family: 'Comic Neue', sans-serif;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+/* Modern Fintech Typography */
+p, span, div, label, input, textarea, select, button {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
+  font-weight: 500;
+  letter-spacing: 0.01em;
 }
 
-/* Financial amounts and important numbers - normal bold */
+/* Financial amounts and important numbers */
 .text-4xl.font-bold,
 .text-3xl.font-bold,
 .text-2xl.font-bold,
@@ -108,9 +107,9 @@ p, span, div, label, input, textarea, select {
 .text-base.font-bold,
 .text-sm.font-bold {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif !important;
+  letter-spacing: -0.03em;
 }
 
-/* All font-bold and font-semibold should use normal fonts (except buttons) */
 .font-bold:not(.glass-button):not(button),
 .font-semibold:not(.glass-button):not(button) {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif !important;
@@ -118,346 +117,261 @@ p, span, div, label, input, textarea, select {
 
 label {
   color: var(--accent);
-  text-shadow: 
-    1px 1px 2px rgba(0, 0, 0, 0.7),
-    2px 2px 4px rgba(0, 0, 0, 0.5);
-  -webkit-text-stroke: 0.5px rgba(0, 0, 0, 0.6);
-  text-stroke: 0.5px rgba(0, 0, 0, 0.6);
-  font-size: 16px;
+  text-shadow: none;
+  -webkit-text-stroke: 0;
+  text-stroke: 0;
+  font-size: 14px;
+  font-weight: 600;
+  opacity: 0.8;
+  margin-bottom: 8px;
+  display: block;
 }
 
 p, span {
   color: rgba(255, 255, 255, 0.9);
-  text-shadow: 
-    1px 1px 2px rgba(0, 0, 0, 0.6),
-    0 0 5px rgba(245, 245, 220, 0.2);
+  text-shadow: none;
 }
 
-/* Financial Text - Normal Bold */
+/* Financial Text */
 .amount, .balance, .price {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Segoe UI', 'Roboto', sans-serif;
   color: var(--accent);
   font-weight: 700;
-  text-shadow: 
-    1px 1px 2px rgba(0, 0, 0, 0.5),
-    0 0 5px rgba(245, 245, 220, 0.2);
-  letter-spacing: 0.01em;
+  text-shadow: none;
+  letter-spacing: -0.02em;
 }
 
-/* iOS-style Glassmorphism with Comic Twist */
+/* 
+   Phantom/MoonPay Style "Slick" Glass 
+   - Cleaner blurs
+   - Softer borders
+   - Deeper shadows for depth
+*/
 .glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(30px) saturate(180%);
-  -webkit-backdrop-filter: blur(30px) saturate(180%);
-  border: 3px solid var(--glass-border);
-  border-radius: 20px;
-  box-shadow: 
-    0 8px 32px 0 rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
-    0 0 20px rgba(245, 245, 220, 0.2);
+  background: rgba(255, 255, 255, 0.03); /* Very subtle fill */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(245, 245, 220, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.2);
 }
 
 .glass-card {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.02) 100%);
-  backdrop-filter: blur(60px) saturate(180%);
-  -webkit-backdrop-filter: blur(60px) saturate(180%);
-  border: 4px solid rgba(245, 245, 220, 0.6);
-  border-radius: 32px;
+  /* Creating the "Widget" look */
+  background: rgba(15, 20, 39, 0.6); /* Slightly darker/tinted to separate from bg */
+  backdrop-filter: blur(40px) saturate(120%);
+  -webkit-backdrop-filter: blur(40px) saturate(120%);
+  
+  /* Super fine border for "premium" feel */
+  border: 1px solid rgba(255, 255, 255, 0.08); 
+  border-radius: 32px; /* Super rounded like iOS widgets */
   padding: 32px;
+  
+  /* Multi-layered shadow for meaningful depth */
   box-shadow: 
-    0 20px 60px 0 rgba(0, 0, 0, 0.4),
-    0 8px 24px 0 rgba(0, 0, 0, 0.3),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.15),
-    inset 0 -1px 0 0 rgba(255, 255, 255, 0.05),
-    0 0 0 2px rgba(245, 245, 220, 0.3),
-    0 0 30px rgba(245, 245, 220, 0.2);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    0 10px 40px -10px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 255, 255, 0.02) inset; /* Inner glow */
+    
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
   position: relative;
   overflow: hidden;
 }
 
 .glass-card-reduced {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
-  backdrop-filter: blur(40px) saturate(150%);
-  -webkit-backdrop-filter: blur(40px) saturate(150%);
-  border: 3px solid rgba(245, 245, 220, 0.5);
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 24px;
   padding: 24px;
-  box-shadow: 
-    0 10px 30px 0 rgba(0, 0, 0, 0.3),
-    0 4px 12px 0 rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 0 rgba(255, 255, 255, 0.1),
-    inset 0 -1px 0 0 rgba(255, 255, 255, 0.03),
-    0 0 0 2px rgba(245, 245, 220, 0.25),
-    0 0 20px rgba(245, 245, 220, 0.15);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  position: relative;
-  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @media (max-width: 768px) {
-  .glass-card, .glass-card-reduced {
-    padding: 20px;
-    border-radius: 20px;
-  }
-  
-  .glass-card-reduced {
-    padding: 18px;
-    border-radius: 18px;
+  .glass-card {
+    padding: 24px;
+    border-radius: 28px;
   }
 }
 
-.glass-card::before, .glass-card-reduced::before {
+/* Subtle sheen animation on hover, not aggressive */
+.glass-card::after {
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
-  height: 1px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    rgba(255, 255, 255, 0.3) 20%, 
-    rgba(245, 245, 220, 0.4) 50%, 
-    rgba(255, 255, 255, 0.3) 80%, 
-    transparent 100%);
-  opacity: 0.6;
-}
-
-.glass-card::after, .glass-card-reduced::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(245, 245, 220, 0.08) 0%, transparent 70%);
-  opacity: 0;
-  transition: opacity 0.3s ease;
+  left: -100%;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(255, 255, 255, 0.03) 50%,
+    transparent 100%
+  );
+  transform: skewX(-25deg);
   pointer-events: none;
+  transition: left 0.5s;
 }
 
-.glass-card:hover::after, .glass-card-reduced:hover::after {
-  opacity: 1;
+.glass-card:hover::after {
+  left: 150%;
+  transition: left 0.7s ease-in-out;
 }
 
-.glass-card:active, .glass-card-reduced:active {
-  transform: scale(0.98);
-  background: rgba(255, 255, 255, 0.12);
+.glass-card:active {
+  transform: scale(0.99);
 }
 
+/* 
+   Inputs: High Contrast Pill Shape 
+   Like MoonPay's inputs
+*/
 .glass-input {
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  backdrop-filter: blur(25px) saturate(150%);
-  -webkit-backdrop-filter: blur(25px) saturate(150%);
-  border: 3px solid rgba(245, 245, 220, 0.5);
-  border-radius: 16px;
-  padding: 14px 16px;
+  /* Solid-ish background for readability */
+  background: rgba(0, 0, 0, 0.2); 
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px; /* Pill-like */
+  padding: 16px 20px;
+  
   color: var(--accent);
   font-size: 16px;
-  font-weight: 700;
-  font-family: 'Comic Neue', sans-serif;
-  letter-spacing: 0.02em;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; /* Clean font */
+  letter-spacing: 0.01em;
+  
   width: 100%;
-  -webkit-appearance: none;
-  appearance: none;
-  box-shadow: 
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    0 0 15px rgba(245, 245, 220, 0.2);
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1); /* Inner depth */
+  text-shadow: none;
 }
 
-.glass-input:focus {
-  color: var(--accent);
-  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.6);
-  text-stroke: 1px rgba(0, 0, 0, 0.6);
-}
-
-@media (max-width: 768px) {
-  .glass-input {
-    font-size: 15px;
-    padding: 12px 14px;
-  }
-}
-
-.glass-input::placeholder {
-  color: rgba(245, 245, 220, 0.4);
-  opacity: 0.6;
-  font-weight: 700;
+.glass-input:hover {
+  background: rgba(0, 0, 0, 0.25);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .glass-input:focus {
   outline: none;
+  background: rgba(0, 0, 0, 0.3);
   border-color: var(--accent);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.08) 100%);
   box-shadow: 
-    0 0 0 4px rgba(245, 245, 220, 0.3),
-    0 4px 16px rgba(245, 245, 220, 0.4),
-    inset 0 1px 2px rgba(255, 255, 255, 0.2),
-    0 2px 12px rgba(0, 0, 0, 0.2),
-    0 0 25px rgba(245, 245, 220, 0.3);
-  transform: translateY(-2px) scale(1.02);
+    0 0 0 4px rgba(245, 245, 220, 0.1), /* Glow ring */
+    inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
 }
 
-/* Select dropdown styling */
+.glass-input::placeholder {
+  color: rgba(255, 255, 255, 0.3);
+  font-weight: 400;
+}
+
+/* Select Styling matching inputs */
 select.glass-input {
-  color: var(--accent);
-  background-color: rgba(10, 14, 39, 0.8);
+  background-color: rgba(10, 14, 39, 0.6);
   cursor: pointer;
-  font-weight: 700;
-  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
-
 select.glass-input option {
-  background-color: rgba(10, 14, 39, 0.95);
-  color: var(--accent);
-  padding: 8px;
-  font-weight: 700;
-  font-family: 'Comic Neue', sans-serif;
+  background-color: #0F142D;
+  color: white;
+  padding: 12px;
 }
 
+/* 
+   Buttons: Full Pill, Solid Gradient 
+   "Pay Now" style buttons
+*/
 .glass-button {
-  background: linear-gradient(135deg, rgba(245, 245, 220, 0.2) 0%, rgba(245, 245, 220, 0.15) 100%);
-  backdrop-filter: blur(20px) saturate(150%);
-  -webkit-backdrop-filter: blur(20px) saturate(150%);
-  border: 4px solid var(--accent);
-  border-radius: 16px;
-  padding: 16px 28px;
-  color: var(--accent);
+  /* Solid accent color default */
+  background: var(--accent); 
+  color: #0A0E27; /* Dark text on light button for contrast */
+  
+  border: none;
+  border-radius: 9999px; /* Full pill */
+  padding: 16px 32px;
+  
   font-weight: 700;
-  font-size: 18px;
-  font-family: 'Bangers', 'Comic Neue', sans-serif;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
+  font-size: 16px;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  letter-spacing: 0.02em;
+  
   cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   position: relative;
   overflow: hidden;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 0 20px rgba(245, 245, 220, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    3px 3px 0px rgba(0, 0, 0, 0.5);
-  -webkit-text-stroke: 1.5px rgba(0, 0, 0, 0.8);
-  text-stroke: 1.5px rgba(0, 0, 0, 0.8);
-  text-shadow: 
-    2px 2px 0px rgba(0, 0, 0, 0.9),
-    4px 4px 0px rgba(0, 0, 0, 0.5);
-}
-
-@media (max-width: 768px) {
-  .glass-button {
-    font-size: 15px;
-    padding: 14px 24px;
-    border-radius: 14px;
-  }
-}
-
-.glass-button:active {
-  transform: scale(0.95) translateY(2px);
-  box-shadow: 
-    0 2px 6px rgba(0, 0, 0, 0.3),
-    0 0 15px rgba(245, 245, 220, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    1px 1px 0px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 4px 12px rgba(245, 245, 220, 0.2);
+  
+  text-transform: none; /* Removed screaming caps */
+  -webkit-text-stroke: 0;
+  text-stroke: 0;
+  text-shadow: none;
 }
 
 .glass-button:hover {
-  background: linear-gradient(135deg, rgba(245, 245, 220, 0.3) 0%, rgba(245, 245, 220, 0.25) 100%);
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: 
-    0 6px 16px rgba(0, 0, 0, 0.4),
-    0 0 30px rgba(245, 245, 220, 0.5),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    4px 4px 0px rgba(0, 0, 0, 0.6);
-  transform: translateY(-2px) scale(1.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(245, 245, 220, 0.3);
+  filter: brightness(110%);
+}
+
+.glass-button:active {
+  transform: scale(0.96);
+  filter: brightness(90%);
 }
 
 .glass-button-primary {
-  background: linear-gradient(135deg, rgba(245, 245, 220, 0.25) 0%, rgba(245, 245, 220, 0.2) 100%);
-  color: var(--accent);
-  border: 4px solid var(--accent);
-  box-shadow: 
-    0 4px 12px rgba(0, 0, 0, 0.3),
-    0 0 25px rgba(245, 245, 220, 0.4),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    3px 3px 0px rgba(0, 0, 0, 0.5);
-  position: relative;
-}
-
-.glass-button-primary:hover {
-  background: linear-gradient(135deg, rgba(245, 245, 220, 0.35) 0%, rgba(245, 245, 220, 0.3) 100%);
-  border-color: var(--accent);
-  color: var(--accent);
-  box-shadow: 
-    0 6px 16px rgba(0, 0, 0, 0.4),
-    0 0 35px rgba(245, 245, 220, 0.6),
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    4px 4px 0px rgba(0, 0, 0, 0.6);
+  /* Kept separate if you want alternative styles later */
+  background: var(--accent);
+  color: #0A0E27;
 }
 
 .glass-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   transform: none;
-  pointer-events: none;
+  box-shadow: none;
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
 }
 
-/* iOS-style code input boxes */
+/* OTP/Code Input - Slick Boxes */
 .code-input-box {
   width: 56px;
-  height: 56px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.04) 100%);
-  backdrop-filter: blur(25px) saturate(150%);
-  -webkit-backdrop-filter: blur(25px) saturate(150%);
-  border: 3px solid rgba(245, 245, 220, 0.6);
-  border-radius: 18px;
+  height: 64px; /* Taller */
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  
   text-align: center;
-  font-size: 32px;
-  font-weight: 700;
-  font-family: 'Bangers', 'Comic Neue', sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   color: var(--accent);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  caret-color: var(--accent);
-  -webkit-appearance: none;
-  appearance: none;
-  box-shadow: 
-    inset 0 1px 2px rgba(0, 0, 0, 0.1),
-    0 2px 8px rgba(0, 0, 0, 0.1),
-    0 0 15px rgba(245, 245, 220, 0.3);
-  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
-  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.7);
-  text-stroke: 1px rgba(0, 0, 0, 0.7);
-}
-
-.code-input-box:focus {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-@media (max-width: 768px) {
-  .code-input-box {
-    width: 50px;
-    height: 50px;
-    font-size: 24px;
-  }
+  
+  transition: all 0.2s ease;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+  text-shadow: none;
+  -webkit-text-stroke: 0;
 }
 
 .code-input-box:focus {
   outline: none;
   border-color: var(--accent);
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.1) 100%);
-  transform: scale(1.1);
+  background: rgba(0, 0, 0, 0.3);
+  transform: translateY(-2px);
   box-shadow: 
-    0 0 0 4px rgba(245, 245, 220, 0.3),
-    0 4px 16px rgba(245, 245, 220, 0.4),
-    inset 0 1px 2px rgba(255, 255, 255, 0.3),
-    0 2px 12px rgba(0, 0, 0, 0.2),
-    0 0 25px rgba(245, 245, 220, 0.5);
+    0 4px 12px rgba(0, 0, 0, 0.2),
+    0 0 0 2px rgba(245, 245, 220, 0.1);
 }
+
+@media (max-width: 768px) {
+  .code-input-box {
+    width: 48px;
+    height: 56px;
+    font-size: 20px;
+  }
+}
+
 
 /* Smooth scrolling */
 html {

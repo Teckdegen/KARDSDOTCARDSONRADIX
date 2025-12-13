@@ -118,123 +118,79 @@ export default function ReferralsPage() {
 
   return (
     <div className="min-h-screen pb-20 p-3 flex items-center justify-center">
-      <div className="w-full max-w-4xl mx-auto space-y-6">
+      <div className="w-full max-w-[440px] mx-auto space-y-6">
         <Header title="Referrals" centered />
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* On mobile, show cashback/stats first, then code + leaderboard */}
-          <div className="lg:col-span-2 space-y-6 order-2 lg:order-1">
-            <GlassCard className="glass-card-reduced p-6">
-              <div className="text-center">
-                <Trophy className="mx-auto mb-3" size={28} style={{ color: '#F5F5DC' }} />
-                <h2 className="text-xl font-bold mb-2">Your Referral Code</h2>
-                <p className="text-white/50 text-sm mb-4">Share this code to earn rewards</p>
-                <p
-                  className="text-lg font-bold font-mono mb-3 bg-white/5 p-4 rounded-xl cursor-pointer"
-                  onClick={copyCode}
-                  onContextMenu={(e) => {
-                    e.preventDefault();
-                    copyCode();
-                  }}
-                >
-                  {referralCode}
-                </p>
-                <p className="text-white/40 text-sm">Tap to copy</p>
-              </div>
-            </GlassCard>
-
-            <GlassCard className="glass-card-reduced p-6">
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <Trophy size={22} style={{ color: '#F5F5DC' }} />
-                Weekly Leaderboard
-              </h3>
-              {leaderboard.length === 0 ? (
-                <p className="text-white/50 text-center py-6">No leaderboard data yet</p>
-              ) : (
-                <div className="space-y-4">
-                  {leaderboard.map((entry) => (
-                    <div key={entry.rank} className="flex items-center justify-between p-3 bg-white/5 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-lg font-bold ${
-                          entry.rank === 1 ? 'bg-yellow-500/20 text-yellow-400' :
-                          entry.rank === 2 ? 'bg-gray-400/20 text-gray-400' :
-                          entry.rank === 3 ? 'bg-orange-500/20 text-orange-400' :
-                          'bg-white/10 text-white/60'
-                        }`}>
-                          {entry.rank}
-                        </div>
-                        <div>
-                          <p className="font-medium text-base">{entry.referralCode}</p>
-                          <p className="text-white/50 text-sm">{entry.referralCount} referrals</p>
-                        </div>
-                      </div>
-                      <p className="font-semibold text-base">${entry.weeklyEarnings.toFixed(2)}</p>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </GlassCard>
-          </div>
-
-          <div className="space-y-6 order-1 lg:order-2">
-            <GlassCard className="glass-card-reduced p-6">
-              <div className="text-center">
-                <Gift className="mx-auto mb-3" size={28} style={{ color: '#F5F5DC' }} />
-                <h2 className="text-xl font-bold mb-2">Total Cashback Earned</h2>
-                <p className="text-3xl font-bold my-3" style={{ color: '#F5F5DC' }}>
-                  ${stats?.allTimeEarnings.toFixed(2) || '0.00'}
-                </p>
-                {stats && stats.weeklyEarnings > 0 && (
-                  <p className="text-sm text-white/60 mt-2">
-                    ${stats.weeklyEarnings.toFixed(2)} available to claim this week
-                  </p>
-                )}
-              </div>
-            </GlassCard>
-
-            <div className="space-y-4">
-              <GlassCard className="glass-card-reduced p-5 text-center">
-                <DollarSign className="mx-auto mb-2" size={22} style={{ color: '#F5F5DC' }} />
-                <p className="text-white/50 text-sm mb-1">This Week</p>
-                <p className="text-xl font-bold">${stats?.weeklyEarnings.toFixed(2) || '0.00'}</p>
-              </GlassCard>
-              <GlassCard className="glass-card-reduced p-5 text-center">
-                <Award className="mx-auto mb-2" size={22} style={{ color: '#F5F5DC' }} />
-                <p className="text-white/50 text-sm mb-1">Available</p>
-                <p className="text-xl font-bold" style={{ color: '#F5F5DC' }}>
-                  ${stats?.weeklyEarnings.toFixed(2) || '0.00'}
-                </p>
-              </GlassCard>
-              <GlassCard className="glass-card-reduced p-5 text-center">
-                <Users className="mx-auto mb-2" size={22} style={{ color: '#F5F5DC' }} />
-                <p className="text-white/50 text-sm mb-1">Referrals</p>
-                <p className="text-xl font-bold">{stats?.referralCount || 0}</p>
-              </GlassCard>
+        {/* Hero Section */}
+        <div className="relative overflow-hidden rounded-[32px] p-6 bg-gradient-to-tr from-[#9945FF]/20 to-[#14F195]/20 border border-white/10">
+          <div className="relative z-10 text-center">
+            <div className="w-16 h-16 rounded-full bg-white/10 backdrop-blur-md flex items-center justify-center mx-auto mb-4 border border-white/10 shadow-xl">
+              <Gift size={32} className="text-[#F5F5DC]" />
             </div>
-
-            {stats && stats.weeklyEarnings > 0 && (
-              <GlassButton
-                variant="primary"
-                onClick={handleClaim}
-                disabled={claiming}
-                className="w-full flex items-center justify-center gap-2 py-4 text-lg"
-              >
-                <Award size={20} />
-                {claiming ? 'Claiming...' : `Claim $${stats.weeklyEarnings.toFixed(2)}`}
-              </GlassButton>
-            )}
+            <p className="text-white/60 text-xs font-bold uppercase tracking-wider mb-2">Total Earnings</p>
+            <h1 className="text-4xl font-bold text-white mb-2">${stats?.allTimeEarnings.toFixed(2) || '0.00'}</h1>
+            <div className="flex items-center justify-center gap-2">
+              <span className="px-3 py-1 bg-green-500/10 text-green-400 text-[10px] font-bold rounded-full border border-green-500/20">
+                +{stats?.weeklyEarnings.toFixed(2) || '0.00'} this week
+              </span>
+            </div>
           </div>
         </div>
 
-        {message && (
-          <GlassCard className={`glass-card-reduced p-4 ${message.includes('Successfully') ? 'bg-green-500/10 border-green-500/30' : 'bg-red-500/10 border-red-500/30'}`}>
-            <p className={`text-center text-lg ${
-              message.includes('Successfully') ? 'text-green-400' : 'text-red-400'
-            }`}>
-              {message}
-            </p>
-          </GlassCard>
+        {/* Referral Code */}
+        <div className="bg-[#0F142D]/50 border border-white/5 rounded-[32px] p-6 text-center">
+          <h3 className="text-white font-bold mb-4">Your Referral Link</h3>
+          <div
+            onClick={copyCode}
+            className="bg-black/30 border border-white/10 rounded-2xl p-4 flex items-center justify-between cursor-pointer active:scale-95 transition-transform group"
+          >
+            <span className="text-white/60 text-sm font-mono truncate mr-2">{referralCode || 'Loading...'}</span>
+            <div className="p-2 bg-white/10 rounded-xl group-hover:bg-white/20 transition-colors">
+              <Users size={16} className="text-white" />
+            </div>
+          </div>
+          <p className="text-white/30 text-[10px] mt-3">Tap to copy and share directly</p>
+        </div>
+
+        {/* Leaderboard or Claim */}
+        {stats && stats.weeklyEarnings > 0 ? (
+          <GlassButton
+            variant="primary"
+            onClick={handleClaim}
+            disabled={claiming}
+            className="w-full flex items-center justify-center gap-2 !py-4 !text-base !font-bold"
+          >
+            <Award size={20} />
+            {claiming ? 'Claiming...' : `Claim $${stats.weeklyEarnings.toFixed(2)}`}
+          </GlassButton>
+        ) : (
+          <div className="bg-[#0F142D]/50 border border-white/5 rounded-[32px] p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="font-bold text-white">Top Earners</h3>
+              <Award size={18} className="text-[#F5F5DC]" />
+            </div>
+            {leaderboard.length === 0 ? (
+              <p className="text-white/40 text-xs text-center py-4">Leaderboard updating...</p>
+            ) : (
+              <div className="space-y-3">
+                {leaderboard.slice(0, 3).map((entry, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 rounded-2xl bg-white/5">
+                    <div className="flex items-center gap-3">
+                      <span className={`text-sm font-bold w-4 ${i === 0 ? 'text-yellow-400' : i === 1 ? 'text-gray-400' : 'text-orange-400'}`}>#{i + 1}</span>
+                      <span className="text-sm font-medium text-white">{entry.referralCode}</span>
+                    </div>
+                    <span className="text-sm font-bold text-[#F5F5DC]">${entry.weeklyEarnings.toFixed(0)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         )}
+
+      </div>
+
+      <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 px-6 py-2 bg-white/10 backdrop-blur-xl rounded-full border border-white/10 text-white font-medium text-sm transition-all duration-300 pointer-events-none ${message ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+        {message}
       </div>
 
       <BottomNav />

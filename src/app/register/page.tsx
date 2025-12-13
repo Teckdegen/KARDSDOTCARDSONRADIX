@@ -64,7 +64,7 @@ export default function RegisterPage() {
         setStep('code');
         startCountdown(600); // 10 minutes = 600 seconds
         setNotification({ message: 'Account created! Check your email for verification code.', type: 'success' });
-        
+
         // Auto-resend after 10 minutes
         if (autoResendTimeoutRef.current) {
           clearTimeout(autoResendTimeoutRef.current);
@@ -96,11 +96,11 @@ export default function RegisterPage() {
       const data = await response.json();
       if (data.success) {
         startCountdown(600); // Reset countdown to 10 minutes
-        setNotification({ 
-          message: isAutoResend ? 'Code automatically resent! Check your email' : 'New code sent! Check your email', 
-          type: 'success' 
+        setNotification({
+          message: isAutoResend ? 'Code automatically resent! Check your email' : 'New code sent! Check your email',
+          type: 'success'
         });
-        
+
         // Schedule next auto-resend
         if (autoResendTimeoutRef.current) {
           clearTimeout(autoResendTimeoutRef.current);
@@ -162,24 +162,21 @@ export default function RegisterPage() {
 
   return (
     <div className="h-screen w-screen flex items-center justify-center p-4 fade-in fixed inset-0">
-      <div className="w-full max-w-md md:max-w-2xl lg:max-w-4xl">
-        <GlassCard className="fade-in">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center justify-center mb-6">
-              <Logo size={100} className="rounded-3xl" />
+      <div className="w-full max-w-[440px]">
+        <GlassCard className="fade-in p-8 !gap-0">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center mb-6 shadow-2xl shadow-black/50 rounded-3xl">
+              <Logo size={80} className="rounded-3xl" />
             </div>
-            <h1 className="text-2xl md:text-3xl font-semibold mb-2" style={{ color: 'rgba(245, 245, 220, 0.6)' }}>Create Account</h1>
-            <p className="text-white/40 text-sm md:text-base">Join KARDS today</p>
+            <h1 className="text-2xl font-bold mb-1" style={{ color: 'white' }}>Create Account</h1>
+            <p className="text-white/40 text-sm">Join KARDS today</p>
           </div>
 
           {step === 'form' ? (
             <div className="space-y-6">
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="text-white/50 text-sm md:text-base mb-2 block font-medium flex items-center gap-2">
-                    <User size={16} className="md:w-4 md:h-4 opacity-60" />
-                    First name
-                  </label>
+                  <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">First name</label>
                   <GlassInput
                     placeholder="John"
                     value={formData.firstName}
@@ -187,7 +184,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div>
-                  <label className="text-white/50 text-sm md:text-base mb-2 block font-medium">Last name</label>
+                  <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">Last name</label>
                   <GlassInput
                     placeholder="Doe"
                     value={formData.lastName}
@@ -196,51 +193,38 @@ export default function RegisterPage() {
                 </div>
               </div>
               <div>
-                <label className="text-white/50 text-sm md:text-base mb-2 block font-medium flex items-center gap-2">
-                  <Mail size={16} className="md:w-4 md:h-4 opacity-60" />
-                  Email address
-                </label>
+                <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">Email address</label>
                 <GlassInput
                   type="email"
-                  placeholder="your@email.com"
+                  placeholder="name@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                 />
               </div>
               <div>
-                <label className="text-white/50 text-sm md:text-base mb-2 block font-medium flex items-center gap-2">
-                  <Hash size={16} className="md:w-4 md:h-4 opacity-60" />
-                  Referral Code
-                </label>
+                <label className="text-white/60 text-[10px] font-bold uppercase tracking-wider mb-1.5 block ml-1">Referral Code</label>
                 <GlassInput
                   placeholder="teckdegen"
                   value={formData.referralCode}
                   onChange={(e) => setFormData({ ...formData, referralCode: e.target.value.toLowerCase() })}
                 />
-                <p className="text-white/30 text-xs md:text-sm mt-2">Choose a unique username-style code</p>
+                <p className="text-white/20 text-[10px] mt-1.5 ml-1">Choose a unique username-style code</p>
               </div>
-              <div className="pt-14">
+              <div className="pt-4">
                 <GlassButton
                   onClick={handleRegister}
                   disabled={loading}
                   variant="primary"
-                  className="w-full flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 !py-4 !text-base !font-bold"
                 >
-                  {loading ? 'Creating...' : (
-                    <>
-                      Create Account <ArrowRight size={18} className="md:w-5 md:h-5" />
-                    </>
-                  )}
+                  {loading ? 'Creating...' : 'Create Account'}
                 </GlassButton>
               </div>
             </div>
           ) : (
-            <div className="space-y-6">
-              <div>
-                <label className="text-white/50 text-sm md:text-base mb-4 block font-medium flex items-center gap-2 justify-center">
-                  <Lock size={16} className="md:w-4 md:h-4 opacity-60" />
-                  Verification Code
-                </label>
+            <div className="space-y-8">
+              <div className="space-y-4">
+                <label className="text-center text-white/60 text-[10px] font-bold uppercase tracking-wider block">Verification Code</label>
                 <CodeInput
                   length={6}
                   value={code}
@@ -250,31 +234,27 @@ export default function RegisterPage() {
                     handleVerifyCode();
                   }}
                 />
-                <p className="text-white/30 text-xs md:text-sm text-center mt-4">Enter the 6-digit code sent to your email</p>
+                <p className="text-white/30 text-xs text-center">Enter the code sent to {formData.email}</p>
               </div>
-              <div className="pt-14">
+
+              <div className="space-y-4">
                 <GlassButton
                   onClick={handleVerifyCode}
                   disabled={loading || code.length !== 6}
                   variant="primary"
-                  className="w-full flex items-center justify-center gap-2"
+                  className="w-full flex items-center justify-center gap-2 !py-4 !text-base !font-bold"
                 >
-                  {loading ? 'Verifying...' : (
-                    <>
-                      Verify Code <ArrowRight size={18} className="md:w-5 md:h-5" />
-                    </>
-                  )}
+                  {loading ? 'Verifying...' : 'Verify Email'}
                 </GlassButton>
-              </div>
-              <div className="pt-4">
+
                 <button
                   onClick={() => handleResendCode(false)}
                   disabled={loading || resendCountdown > 0}
-                  className="text-white/60 text-sm hover:text-white/80 transition-all duration-300 w-full text-center flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="text-white/40 text-xs hover:text-white transition-all w-full text-center flex items-center justify-center gap-1.5 disabled:opacity-30"
                 >
-                  <RefreshCw size={14} className={resendCountdown > 0 ? 'animate-spin' : ''} />
-                  {resendCountdown > 0 
-                    ? `Resend code in ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, '0')}`
+                  <RefreshCw size={12} className={resendCountdown > 0 ? 'animate-spin' : ''} />
+                  {resendCountdown > 0
+                    ? `Resend in ${Math.floor(resendCountdown / 60)}:${String(resendCountdown % 60).padStart(2, '0')}`
                     : 'Resend Code'
                   }
                 </button>
@@ -282,9 +262,9 @@ export default function RegisterPage() {
             </div>
           )}
 
-          <div className="mt-8 text-center">
-            <Link href="/login" className="text-white/40 text-xs md:text-sm hover:text-white/60 transition-all duration-300 inline-flex items-center gap-2 group">
-              Already have an account? <span className="text-[rgba(245,245,220,0.5)] group-hover:text-[rgba(245,245,220,0.7)] group-hover:underline">Login</span>
+          <div className="mt-8 text-center border-t border-white/5 pt-6">
+            <Link href="/login" className="text-white/40 text-xs hover:text-[#F5F5DC] transition-colors font-medium">
+              Already have an account? Log in
             </Link>
           </div>
         </GlassCard>
