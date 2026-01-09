@@ -1,6 +1,6 @@
 # KARDS - Crypto Debit Card Platform
 
-A full-stack crypto debit card platform built with Next.js, Vercel serverless functions, Supabase, and Cashwyre API integration.
+A full-stack crypto debit card platform built with Vite/React, Vercel serverless functions, Supabase, and Cashwyre API integration.
 
 ## 📋 Table of Contents
 
@@ -37,7 +37,7 @@ The platform uses **Supabase** as the database, **Cashwyre API** for card manage
 
 ```
 ┌─────────────────┐
-│   Next.js App   │ (Frontend + API Routes)
+│  Vite/React App │ (Frontend)
 │   (Vercel)      │
 └────────┬────────┘
          │
@@ -47,10 +47,17 @@ The platform uses **Supabase** as the database, **Cashwyre API** for card manage
 │Supabase│ │Cashwyre  │ │  Resend   │ │ Telegram │
 │(Postgres)│ │   API    │ │   Email   │ │   Bot    │
 └────────┘ └──────────┘ └───────────┘ └──────────┘
+         │
+    ┌────┴────────┐
+    │             │
+┌───▼─────────┐ ┌─▼──────────────┐
+│  API Routes │ │ Serverless     │
+│  (Vercel)   │ │ Functions      │
+└─────────────┘ └────────────────┘
 ```
 
 **Key Components:**
-- **Frontend**: Next.js 16 with React 19, TypeScript, Tailwind CSS
+- **Frontend**: Vite with React 19, TypeScript, Tailwind CSS
 - **Backend**: Vercel serverless functions (API routes)
 - **Database**: Supabase (PostgreSQL)
 - **Card Provider**: Cashwyre API
@@ -1406,14 +1413,15 @@ The application is deployed on **Vercel** as serverless functions. Each API rout
 
 **Database:** Supabase (PostgreSQL) - hosted separately
 
-**Frontend:** Next.js static pages + API routes on Vercel
+**Frontend:** Vite/React app deployed on Vercel
+**Backend:** Vercel Serverless Functions (API routes)
 
 ---
 
 ## 📚 Tech Stack Summary
 
-- **Frontend:** Next.js 16, React 19, TypeScript, Tailwind CSS
-- **Backend:** Vercel Serverless Functions (Next.js API routes)
+- **Frontend:** Vite, React 19, TypeScript, Tailwind CSS
+- **Backend:** Vercel Serverless Functions (API routes)
 - **Database:** Supabase (PostgreSQL)
 - **Email:** Resend
 - **Card Provider:** Cashwyre API
