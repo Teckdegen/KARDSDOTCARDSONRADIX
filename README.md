@@ -832,6 +832,429 @@ Handles payment webhook from Cashwyre.
 
 ---
 
+## ⏱️ API Call Timing & Webhook Handling
+
+This section explains **when each API is called**, **the sequence of operations**, and **how the system waits for webhooks** in an asynchronous flow.
+
+### 🔄 Asynchronous Flow Architecture
+
+The system uses an **asynchronous webhook-based architecture**:
+- **API calls are synchronous** (immediate response)
+- **Webhook processing is asynchronous** (happens later when Cashwyre calls back)
+- **No polling** - system waits passively for webhooks
+- **Status tracking** via database records (status: "pending", "processing", "active", etc.)
+
+### 📋 Card Creation: Complete API Call Sequence
+
+#### Step 1: User Initiates Card Creation
+**API Called:** `POST /api/cards/create`
+
+**Immediate API Calls (Synchronous - All happen in this request):**
+
+1. **Balance Check** (Flare RPC):
+   - `getUSDCBalance()` - Checks user's USDC balance
+   - `checkXRDForBridge()` - Checks user has ~410 XRD for bridge fees
+   - **When:** Before any transactions
+   - **Response Time:** ~1-2 seconds
+
+2. **Create Ethereum Address** (Cashwyre API):
+   - `POST /CustomerCryptoAddress/createCryptoAddress`
+   - **When:** After validation, before transactions
+   - **Response Time:** ~2-3 seconds
+   - **Returns:** Ethereum address for card funding
+   - **Note:** Reuses existing address if previous card creation was cancelled
+
+3. **Send Insurance Fee** (Flare Network):
+   - `buildTransferManifest()` - Builds transfer transaction
+   - `signAndSubmitManifest()` - Signs and submits $10 USDC to insurance wallet
+   - **When:** After Ethereum address is created
+   - **Response Time:** ~3-5 seconds (transaction submission)
+   - **Returns:** Transaction hash (immediate confirmation)
+
+4. **Get Bridge Quote** (Bridge API):
+   - `POST /quote` (Astrolescent Bridge API)
+   - **When:** After insurance fee is sent
+   - **Response Time:** ~2-4 seconds
+   - **Returns:** Bridge transaction manifest
+   - **Expiration:** Quote expires after some time (check API)
+
+5. **Submit Bridge Transaction** (Flare Network):
+   - `signAndSubmitManifest()` - Signs and submits bridge transaction
+   - **When:** After getting bridge quote
+   - **Response Time:** ~3-5 seconds (transaction submission)
+   - **Returns:** Transaction hash (immediate confirmation)
+   - **Note:** Transaction is submitted but funds take time to bridge
+
+6. **Create Card Record** (Supabase):
+   - `INSERT INTO cards` - Creates pending card record
+   - **When:** After bridge transaction is submitted
+   - **Response Time:** ~200-500ms
+   - **Status:** "processing"
+   - **Stores:** `form_data`, `card_wallet_address`, status
+
+**Total Request Time:** ~15-25 seconds (synchronous wait)
+
+**Response to User:**
+```json
+{
+  "success": true,
+  "message": "Card creation initiated. Processing...",
+  "transactionHash": "..."
+}
+```
+
+**At This Point:**
+- ✅ Insurance fee transaction submitted (confirmed)
+- ✅ Bridge transaction submitted (pending)
+- ✅ Card record created in Supabase (status: "processing")
+- ⏳ Waiting for bridge to complete (5-15 minutes)
+- ⏳ Waiting for Cashwyre payment webhook
+
+---
+
+#### Step 2: Bridge Completes (External Process)
+**Time:** 5-15 minutes after bridge transaction submission
+
+**What Happens:**
+- User's USDC is bridged from Flare → Ethereum
+- Funds arrive at `card_wallet_address` on Ethereum network
+- **No API call from our system** - this is external blockchain processing
+
+---
+
+#### Step 3: Cashwyre Detects Payment (Webhook Trigger)
+**Webhook:** `POST /api/webhooks/cashwyre-payment`
+**Event Type:** `stablecoin.usdc.received.success`
+
+**Timing:** 
+- Triggered automatically by Cashwyre when they detect USDC payment
+- Usually 1-5 minutes after funds arrive on Ethereum
+- **Asynchronous** - system doesn't poll, just waits
+
+**Process:**
+1. **Log Webhook** (Supabase):
+   - `INSERT INTO webhook_logs` - Logs webhook event
+   - **When:** Immediately when webhook arrives
+
+2. **Find Pending Card** (Supabase):
+   - `SELECT FROM cards WHERE card_wallet_address = <address> AND status = 'processing'`
+   - **When:** After logging webhook
+
+3. **Create Card** (Cashwyre API):
+   - `POST /CustomerCard/createCard`
+   - **When:** After finding pending card
+   - **Response Time:** ~3-5 seconds
+   - **Payload:**
+     ```json
+     {
+       "requestId": "KARDS...",
+       "firstName": "...",
+       "lastName": "...",
+       "email": "...",
+       "phoneCode": "+1",  // Auto-generated randomly
+       "phoneNumber": "1234567890",  // Auto-generated randomly
+       "dateOfBirth": "1990-01-01",  // Auto-generated randomly
+       "homeAddressNumber": "123",  // Auto-generated randomly
+       "homeAddress": "Main Street",  // Auto-generated randomly
+       "cardName": "...",
+       "cardType": "physical",
+       "cardBrand": "visa",
+       "amountInUSD": 15
+     }
+     ```
+   - **Returns:** Success (card creation started on Cashwyre side)
+   - **Note:** Auto-generated data (phone, address, DOB) sent here but NOT stored in Supabase
+
+4. **Update Webhook Status** (Supabase):
+   - `UPDATE webhook_logs SET processed = true`
+   - **When:** After Cashwyre API call succeeds
+
+**At This Point:**
+- ✅ Payment detected by Cashwyre
+- ✅ Card creation API called to Cashwyre
+- ⏳ Waiting for Cashwyre to process card creation (1-5 minutes)
+
+---
+
+#### Step 4: Cashwyre Creates Card (Webhook Trigger)
+**Webhook:** `POST /api/webhooks/cashwyre-card-created`
+**Event Type:** `virtualcard.created.success`
+
+**Timing:**
+- Triggered automatically by Cashwyre after card is created
+- Usually 1-5 minutes after `createCard` API call
+- **Asynchronous** - system doesn't poll, just waits
+
+**Process:**
+1. **Log Webhook** (Supabase):
+   - `INSERT INTO webhook_logs` - Logs webhook event
+   - **When:** Immediately when webhook arrives
+
+2. **Find User** (Supabase):
+   - `SELECT FROM users WHERE email = <email>`
+   - **When:** After logging webhook
+
+3. **Find Pending Card** (Supabase):
+   - `SELECT FROM cards WHERE user_id = <id> AND status = 'processing' AND card_code IS NULL`
+   - **When:** After finding user
+
+4. **Update Card Reference** (Supabase):
+   - `UPDATE cards SET card_code = <code>, customer_code = <code>, status = 'active', balance = <amount>, last4 = <last4>, expiry_on = <expiry>`
+   - **When:** After finding pending card
+   - **Stores:** `card_code` (used to fetch full details later)
+   - **Status:** Changed to "active"
+   - **Note:** Balance, last4, expiry are cached but should be fetched from API for accuracy
+
+5. **Update Webhook Status** (Supabase):
+   - `UPDATE webhook_logs SET processed = true`
+   - **When:** After card update succeeds
+
+**At This Point:**
+- ✅ Card created on Cashwyre
+- ✅ Card reference updated in Supabase
+- ✅ `card_code` now available (can fetch full details)
+- ✅ Status: "active"
+
+**Total Time from User Request:** 15-30 minutes (mostly waiting for webhooks)
+
+---
+
+### 💰 Top-up: Complete API Call Sequence
+
+#### Step 1: User Initiates Top-up
+**API Called:** `POST /api/cards/[cardCode]/topup`
+
+**Immediate API Calls (Synchronous - All happen in this request):**
+
+1. **Verify Card Ownership** (Supabase):
+   - `SELECT FROM cards WHERE card_code = <code> AND user_id = <id>`
+   - **When:** Immediately
+   - **Response Time:** ~200-500ms
+
+2. **Balance Check** (Flare RPC):
+   - `getUSDCBalance()` - Checks user's USDC balance
+   - `checkXRDForBridge()` - Checks user has ~410 XRD for bridge fees
+   - **When:** After validation
+   - **Response Time:** ~1-2 seconds
+
+3. **Get Bridge Quote** (Bridge API):
+   - `POST /quote` (Astrolescent Bridge API)
+   - **When:** After balance check
+   - **Response Time:** ~2-4 seconds
+   - **Returns:** Bridge transaction manifest
+   - **Expiration:** Quote expires after some time
+
+4. **Submit Bridge Transaction** (Flare Network):
+   - `signAndSubmitManifest()` - Signs and submits bridge transaction
+   - **When:** After getting bridge quote
+   - **Response Time:** ~3-5 seconds
+   - **Returns:** Transaction hash (immediate confirmation)
+
+5. **Create Transaction Record** (Supabase):
+   - `INSERT INTO transactions` - Creates pending transaction record
+   - **When:** After bridge transaction is submitted
+   - **Response Time:** ~200-500ms
+   - **Status:** "pending"
+
+**Total Request Time:** ~10-15 seconds (synchronous wait)
+
+**Response to User:**
+```json
+{
+  "success": true,
+  "message": "Top-up initiated. Processing...",
+  "transactionHash": "..."
+}
+```
+
+**At This Point:**
+- ✅ Bridge transaction submitted (pending)
+- ✅ Transaction record created (status: "pending")
+- ⏳ Waiting for bridge to complete (5-15 minutes)
+- ⏳ Waiting for Cashwyre payment webhook
+
+---
+
+#### Step 2: Bridge Completes (External Process)
+**Time:** 5-15 minutes after bridge transaction submission
+
+**What Happens:**
+- User's USDC is bridged from Flare → Ethereum
+- Funds arrive at card's `card_wallet_address` on Ethereum network
+- **No API call from our system** - this is external blockchain processing
+
+---
+
+#### Step 3: Cashwyre Detects Payment (Webhook Trigger)
+**Webhook:** `POST /api/webhooks/cashwyre-payment`
+**Event Type:** `stablecoin.usdc.received.success`
+
+**Timing:**
+- Triggered automatically by Cashwyre when they detect USDC payment
+- Usually 1-5 minutes after funds arrive on Ethereum
+- **Asynchronous** - system doesn't poll, just waits
+
+**Process:**
+1. **Log Webhook** (Supabase):
+   - `INSERT INTO webhook_logs` - Logs webhook event
+   - **When:** Immediately when webhook arrives
+
+2. **Find Card** (Supabase):
+   - `SELECT FROM cards WHERE card_wallet_address = <address>`
+   - **When:** After logging webhook
+
+3. **Calculate Top-up Amount** (Internal):
+   - `calculateTopUpAmount(amount)` - Subtracts processing fee ($2.50)
+   - **When:** After finding card
+   - **Formula:** `amount - 2.50`
+
+4. **Top-up Card** (Cashwyre API):
+   - `POST /CustomerCard/topup`
+   - **When:** After calculating amount
+   - **Response Time:** ~3-5 seconds
+   - **Payload:**
+     ```json
+     {
+       "requestId": "KARDS...",
+       "cardCode": "...",
+       "amountInUSD": 47.50  // Original amount - $2.50 fee
+     }
+     ```
+   - **Returns:** Success (top-up processed on Cashwyre)
+
+5. **Update Card Balance** (Supabase):
+   - `UPDATE cards SET balance = balance + <amount>`
+   - **When:** After Cashwyre API call succeeds
+   - **Note:** This is a cache - should fetch from Cashwyre API for accuracy
+
+6. **Update Transaction Status** (Supabase):
+   - `UPDATE transactions SET status = 'success', amount = <amount> WHERE card_id = <id> AND type = 'top_up' AND status = 'pending'`
+   - **When:** After balance update
+
+7. **Update Webhook Status** (Supabase):
+   - `UPDATE webhook_logs SET processed = true`
+   - **When:** After all updates succeed
+
+**At This Point:**
+- ✅ Payment detected by Cashwyre
+- ✅ Top-up processed on Cashwyre
+- ✅ Card balance updated (cached in Supabase)
+- ✅ Transaction status: "success"
+
+**Total Time from User Request:** 10-25 minutes (mostly waiting for webhooks)
+
+---
+
+### 📊 Fetching Card Details
+
+**API Called:** `GET /api/cards/[cardCode]`
+
+**Process:**
+1. **Verify Ownership** (Supabase):
+   - `SELECT FROM cards WHERE card_code = <code> AND user_id = <id>`
+   - **When:** Immediately
+   - **Response Time:** ~200-500ms
+   - **Returns:** Card reference (has `card_code`)
+
+2. **Fetch Full Details** (Cashwyre API):
+   - `POST /CustomerCard/getCard`
+   - **When:** After ownership verification
+   - **Response Time:** ~2-4 seconds
+   - **Payload:**
+     ```json
+     {
+       "requestId": "KARDS...",
+       "cardCode": "..."
+     }
+     ```
+   - **Returns:** Full card details (balance, last4, expiry, transactions, etc.)
+
+3. **Merge Data**:
+   - Combines Supabase reference + Cashwyre full details
+   - **When:** After Cashwyre API response
+
+**Response:**
+```json
+{
+  "success": true,
+  "card": {
+    // From Supabase:
+    "id": "...",
+    "user_id": "...",
+    "card_name": "...",
+    // From Cashwyre API (fresh data):
+    "balance": 100.00,
+    "last4": "1234",
+    "expiryOn": "12/2025",
+    "transactions": [...]
+  }
+}
+```
+
+**Key Point:** Card details are **always fetched fresh** from Cashwyre API every time they're requested. Supabase only stores the `card_code` reference.
+
+---
+
+### ⏰ Timeline Summary
+
+#### Card Creation Timeline:
+```
+T+0s:     User clicks "Create Card"
+T+0-25s:  API calls (balance check, create address, insurance fee, bridge quote, submit bridge)
+T+25s:    Response to user: "Processing..."
+T+5-15m:  Bridge completes (Flare → Ethereum)
+T+6-20m:  Cashwyre detects payment → webhook triggers → createCard API called
+T+7-25m:  Cashwyre creates card → webhook triggers → card_code stored
+T+25m:    Card is active and ready to use
+```
+
+#### Top-up Timeline:
+```
+T+0s:     User enters amount and clicks "Top-up"
+T+0-15s:  API calls (verify card, balance check, bridge quote, submit bridge)
+T+15s:    Response to user: "Processing..."
+T+5-15m:  Bridge completes (Flare → Ethereum)
+T+6-20m:  Cashwyre detects payment → webhook triggers → topup API called
+T+20m:    Top-up complete, balance updated
+```
+
+---
+
+### 🔍 How Webhooks Are Handled
+
+**No Active Polling:**
+- System does **NOT** poll Cashwyre API for status updates
+- System does **NOT** continuously check transaction status
+- System **passively waits** for Cashwyre to send webhooks
+
+**Webhook Processing:**
+1. **Vercel receives webhook** → Triggers serverless function
+2. **Function logs webhook** → Stores in `webhook_logs` table
+3. **Function processes event** → Calls Cashwyre API if needed
+4. **Function updates database** → Updates card/transaction status
+5. **Function marks webhook as processed** → Sets `processed = true`
+
+**Webhook Reliability:**
+- All webhooks are logged before processing
+- Failed webhooks can be reprocessed manually (check `webhook_logs` table)
+- Webhook processing is idempotent (can be safely retried)
+
+**Error Handling:**
+- If webhook processing fails, error is logged in `webhook_logs.error_message`
+- `processed` flag remains `false` for failed webhooks
+- System can manually reprocess failed webhooks
+
+**Webhook Endpoints:**
+- `/api/webhooks/cashwyre-card-created` - Handles `virtualcard.created.success`
+- `/api/webhooks/cashwyre-payment` - Handles `stablecoin.usdc.received.success` and `stablecoin.usdt.received.success`
+
+**Webhook Configuration:**
+- Webhooks must be configured in Cashwyre dashboard
+- URLs point to your Vercel deployment
+- Cashwyre sends webhooks automatically when events occur
+
+---
+
 ## 💾 Data Storage
 
 ### ✅ Stored in Supabase
