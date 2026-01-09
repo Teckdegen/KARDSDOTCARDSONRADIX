@@ -89,8 +89,8 @@ Stores wallet information for users.
 **Columns:**
 - `id` (uuid, primary key)
 - `user_id` (uuid, foreign key → users.id)
-- `radix_wallet_address` (text) - Wallet address (plain text)
-- `radix_private_key` (text) - Encrypted private key (AES encryption)
+- `flare_wallet_address` (text) - Wallet address (plain text)
+- `flare_private_key` (text) - Encrypted private key (AES encryption)
 - `created_at` (timestamp)
 - `updated_at` (timestamp)
 
@@ -137,8 +137,8 @@ Stores all transaction records.
   - `card_creation` - Card creation payment
   - `top_up` - Card top-up
   - `card_purchase` - Card transaction
-  - `radix_send` - Radix wallet send
-  - `radix_receive` - Radix wallet receive
+  - `flare_send` - Flare wallet send
+  - `flare_receive` - Flare wallet receive
   - `bridge` - Bridge transaction
 - `amount` (numeric) - Transaction amount
 - `status` (text) - "pending", "success", "failed"
@@ -350,8 +350,8 @@ Creates a new card.
 1. Validates user authentication
 2. Checks user has less than 4 cards
 3. Gets user's wallet from `wallets` table
-4. Gets bridge quote from Astrolescent Bridge API
-5. Signs and submits bridge transaction (Radix → Ethereum)
+4. Gets bridge quote from Bridge API
+5. Signs and submits bridge transaction (Flare → Ethereum)
 6. Creates Ethereum deposit address via Cashwyre API
 7. Creates card record in `cards` table with status "processing"
 8. Stores form data in `form_data` JSONB column
@@ -498,7 +498,7 @@ Gets wallet balance.
 #### `GET /api/wallet/address`
 Gets wallet address.
 
-**Stored in Supabase:** ✅ Yes (from `wallets.radix_wallet_address`)
+**Stored in Supabase:** ✅ Yes (from `wallets.flare_wallet_address`)
 
 ---
 
@@ -684,7 +684,7 @@ Handles payment webhook from Cashwyre.
    - Validates user authentication
    - Checks user has < 4 cards
    - Gets user's wallet from `wallets` table
-   - Gets bridge quote (Radix → Ethereum)
+   - Gets bridge quote (Flare → Ethereum)
    - Signs and submits bridge transaction
    - Creates Ethereum address via Cashwyre API
    - Creates card record in `cards` table:
@@ -695,7 +695,7 @@ Handles payment webhook from Cashwyre.
    - Creates transaction record (type: "card_creation", status: "pending")
 
 3. **Payment Processing:**
-   - User's funds are bridged from Radix to Ethereum
+   - User's funds are bridged from Flare to Ethereum
    - Funds arrive at `card_wallet_address`
 
 4. **Webhook Trigger:**
@@ -734,7 +734,7 @@ Handles payment webhook from Cashwyre.
    - Creates transaction record (type: "top_up", status: "pending")
 
 3. **Payment Processing:**
-   - User's funds are bridged from Radix to Ethereum
+   - User's funds are bridged from Flare to Ethereum
    - Funds arrive at card's `card_wallet_address`
 
 4. **Webhook Trigger:**
@@ -903,8 +903,8 @@ ENCRYPTION_KEY=your-32-character-encryption-key
 
 ```env
 # Network Configuration
-NEXT_PUBLIC_RADIX_NETWORK_ID=1
-NEXT_PUBLIC_RADIX_DAPP_DEFINITION=your-dapp-definition
+NEXT_PUBLIC_FLARE_NETWORK_ID=1
+NEXT_PUBLIC_FLARE_DAPP_DEFINITION=your-dapp-definition
 ```
 
 ---
@@ -961,4 +961,4 @@ The application is deployed on **Vercel** as serverless functions. Each API rout
 
 ---
 
-*This README excludes Radix blockchain implementation details as requested.*
+*This README documents the system built on Flare chain, using the same technical approach and architecture as the previous implementation.*
