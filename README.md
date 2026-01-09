@@ -101,28 +101,30 @@ Stores wallet information for users.
 ---
 
 #### `cards`
-Stores card information.
+Stores minimal card reference information (NOT full card details).
 
 **Columns:**
 - `id` (uuid, primary key)
 - `user_id` (uuid, foreign key → users.id)
-- `card_code` (text) - Cashwyre card code (set after card creation)
+- `card_code` (text) - Cashwyre card code (set after card creation, used to fetch details)
 - `customer_code` (text) - Cashwyre customer code
-- `card_name` (text) - User-defined card name
-- `card_brand` (text) - Always "visa"
-- `card_type` (text) - Always "physical"
-- `card_wallet_address` (text) - Ethereum address for this card
-- `status` (text) - "processing", "active", "frozen", "cancelled"
-- `balance` (numeric) - Card balance in USD
-- `last4` (text) - Last 4 digits of card
-- `expiry_on` (text) - Card expiry date
-- `form_data` (jsonb) - Stored form data during card creation
+- `card_name` (text) - User-defined card name (for display only)
+- `card_brand` (text) - Always "visa" (hardcoded)
+- `card_type` (text) - Always "physical" (hardcoded)
+- `card_wallet_address` (text) - Ethereum address for this card (for payment tracking)
+- `status` (text) - "processing", "active", "frozen", "cancelled" (basic status only)
+- `balance` (numeric) - Card balance in USD (updated from webhooks, may be stale)
+- `last4` (text) - Last 4 digits of card (updated from webhooks, may be stale)
+- `expiry_on` (text) - Card expiry date (updated from webhooks, may be stale)
+- `form_data` (jsonb) - Temporary form data stored during card creation (used for Cashwyre API call)
 - `created_at` (timestamp)
 - `updated_at` (timestamp)
 
-**Stored in Supabase:** ✅ Yes
-- All card metadata is stored locally
-- Card codes come from Cashwyre webhooks
+**Stored in Supabase:** ⚠️ Minimal Reference Only
+- **Supabase stores:** Only `card_code` and basic reference fields
+- **Full card details are ALWAYS fetched from Cashwyre API** when needed
+- `form_data` is temporary and used only during card creation process
+- Balance, last4, expiry may be updated from webhooks but should be fetched from Cashwyre for accuracy
 
 ---
 
@@ -330,7 +332,13 @@ Authorization: Bearer <token>
 #### `GET /api/cards/[cardCode]`
 Gets specific card details.
 
-**Stored in Supabase:** ✅ Yes
+**Process:**
+1. Verifies user owns card (checks `card_code` in Supabase)
+2. Fetches full card details from Cashwyre API (`/CustomerCard/getCard`)
+3. Returns combined data (Supabase reference + Cashwyre full details)
+
+**Stored in Supabase:** ⚠️ Only reference (`card_code`)
+**Full details:** Always fetched from Cashwyre API in real-time
 
 ---
 
@@ -358,9 +366,12 @@ Creates a new card.
 9. Creates transaction record
 10. Returns success
 
-**Note:** Card is created asynchronously. Cashwyre webhook updates card when ready.
+**Note:** Card is created asynchronously. Cashwyre webhook updates card reference when ready.
 
-**Stored in Supabase:** ✅ Yes (card metadata, form data)
+**Stored in Supabase:** ⚠️ Minimal reference only
+- Card reference with `card_code` (after webhook)
+- Temporary `form_data` (used during creation, not stored long-term)
+- Full card details are NOT stored - always fetched from Cashwyre API
 
 ---
 
@@ -384,7 +395,8 @@ Tops up a card.
 
 **Note:** Top-up is completed when Cashwyre webhook confirms payment received.
 
-**Stored in Supabase:** ✅ Yes (transaction record)
+**Stored in Supabase:** ✅ Yes (transaction record only)
+- Card balance may be updated from webhook but should be fetched from Cashwyre for accuracy
 
 ---
 
@@ -597,13 +609,15 @@ Handles payment webhook from Cashwyre.
 **Base URL:** `https://businessapi.cashwyre.com/api/v1.0`
 
 **Endpoints Used:**
-- `POST /CustomerCard/createCard` - Creates a new card
+- `POST /CustomerCard/createCard` - Creates a new card (with auto-generated user data)
 - `POST /CustomerCard/topup` - Tops up a card
 - `POST /CustomerCard/freeze` - Freezes a card
 - `POST /CustomerCard/unfreeze` - Unfreezes a card
-- `POST /CustomerCard/getCardDetails` - Gets card details
+- `POST /CustomerCard/getCard` - **Gets full card details** (called every time details are needed)
 - `POST /CustomerCard/getCardTransactions` - Gets card transactions
 - `POST /CustomerAddress/createAddress` - Creates Ethereum deposit address
+
+**Important:** Card details are fetched from `/CustomerCard/getCard` every time they're needed. Supabase only stores the `card_code` reference to call this endpoint.
 
 **Authentication:**
 - Bearer token in `Authorization` header
@@ -623,7 +637,7 @@ Handles payment webhook from Cashwyre.
 - Format: `KARDS` + 12 alphanumeric characters
 - Example: `KARDSa1b2c3d4e5f6`
 
-**Stored in Supabase:** ❌ No (only API responses are used, not stored)
+**Stored in Supabase:** ❌ No (only `card_code` reference is stored, full details fetched from API)
 
 ---
 
@@ -690,7 +704,7 @@ Handles payment webhook from Cashwyre.
    - Creates card record in `cards` table:
      - Status: "processing"
      - `card_code`: null (will be set by webhook)
-     - `form_data`: Stores all form data as JSONB
+     - `form_data`: Stores all form data as JSONB (temporary, used for API call)
      - `card_wallet_address`: Ethereum address
    - Creates transaction record (type: "card_creation", status: "pending")
 
@@ -703,20 +717,29 @@ Handles payment webhook from Cashwyre.
    - Sends webhook: `stablecoin.usdc.received.success`
    - System receives webhook at `/api/webhooks/cashwyre-payment`
    - System finds pending card by `card_wallet_address`
-   - System calls Cashwyre `createCard` API with stored `form_data`
+   - System calls Cashwyre `createCard` API with stored `form_data`:
+     - Auto-generated phone number and country code (random)
+     - Auto-generated address (random, based on country code)
+     - Auto-generated date of birth (random)
+     - User's name and email from Supabase
    - Cashwyre creates card
 
 5. **Card Created:**
    - Cashwyre sends webhook: `virtualcard.created.success`
    - System receives webhook at `/api/webhooks/cashwyre-card-created`
-   - System updates card:
-     - `card_code`: Set from webhook
+   - System updates card reference:
+     - `card_code`: Set from webhook (used to fetch details)
      - `status`: "active"
-     - `balance`: Initial amount
-     - `last4`: Last 4 digits
-     - `expiry_on`: Expiry date
+     - `balance`: Initial amount (may be stale, fetch from API for accuracy)
+     - `last4`: Last 4 digits (may be stale, fetch from API for accuracy)
+     - `expiry_on`: Expiry date (may be stale, fetch from API for accuracy)
 
-**Stored in Supabase:** ✅ Yes (card metadata, form_data, transactions)
+**Stored in Supabase:** ⚠️ Minimal reference only
+- Card reference with `card_code` (used to fetch details from Cashwyre)
+- Transaction records
+- `form_data` is temporary and used only during creation
+- Auto-generated data (phone, address, DOB) is NOT stored - only sent to Cashwyre
+- Full card details are always fetched from Cashwyre API when needed
 
 ---
 
@@ -744,10 +767,11 @@ Handles payment webhook from Cashwyre.
    - System finds card by `card_wallet_address`
    - System calculates top-up amount (minus processing fee)
    - System calls Cashwyre `topup` API
-   - System updates card balance
+   - System updates card balance (may be stale, fetch from API for accuracy)
    - System updates transaction status to "success"
 
-**Stored in Supabase:** ✅ Yes (card balance, transaction status)
+**Stored in Supabase:** ✅ Yes (transaction record)
+- Card balance may be updated from webhook but should be fetched from Cashwyre for accuracy
 
 ---
 
@@ -816,15 +840,21 @@ Handles payment webhook from Cashwyre.
   - Name, email, referral code
   - Total earnings, weekly earnings, referral count
   - Ethereum deposit address
+  - ❌ Phone number NOT stored
+  - ❌ Address NOT stored
+  - ❌ Date of birth NOT stored
 
 - **Wallet Data:**
   - Wallet address (plain text)
   - Private key (encrypted with AES)
 
-- **Card Data:**
-  - All card metadata (name, code, balance, status, etc.)
-  - Form data (stored as JSONB during creation)
-  - Card wallet address (Ethereum)
+- **Card Data (Minimal Reference Only):**
+  - `card_code` (used to fetch full details from Cashwyre)
+  - Basic status ("processing", "active", "frozen")
+  - User-defined card name (for display)
+  - Card wallet address (Ethereum, for payment tracking)
+  - Temporary `form_data` (used during creation only)
+  - Balance, last4, expiry (updated from webhooks but may be stale)
 
 - **Transactions:**
   - All transaction records
@@ -848,9 +878,29 @@ Handles payment webhook from Cashwyre.
 
 ### ❌ NOT Stored in Supabase
 
+- **Full Card Details:**
+  - Card details are ALWAYS fetched from Cashwyre API in real-time
+  - Only `card_code` reference is stored in Supabase
+  - Balance, last4, expiry, transactions, etc. are fetched from Cashwyre when needed
+  - API endpoint: `/CustomerCard/getCard` - called every time card details are needed
+
+- **User Contact Information:**
+  - Phone number (NOT stored) - auto-generated randomly during card creation
+  - Country code (NOT stored) - auto-generated randomly during card creation
+  - Home address (NOT stored) - auto-generated randomly during card creation
+  - Home address number (NOT stored) - auto-generated randomly during card creation
+  - Date of birth (NOT stored) - auto-generated randomly during card creation
+  - **Note:** These are generated on-the-fly during card creation and only sent to Cashwyre API
+
+- **Card Form Data:**
+  - `form_data` in `cards` table is temporary
+  - Used only during card creation process
+  - Not stored long-term
+
 - **Cashwyre API Responses:**
-  - API responses are used but not stored
-  - Only metadata extracted from responses is stored
+  - Full API responses are not stored
+  - Only `card_code` reference is extracted and stored
+  - All card details fetched fresh from Cashwyre API when needed
 
 - **Email Content:**
   - Email messages are sent but content is not stored
@@ -865,7 +915,7 @@ Handles payment webhook from Cashwyre.
 
 - **Real-time Balances:**
   - Wallet balances are fetched from external APIs, not stored
-  - Card balances are stored (from Cashwyre webhooks)
+  - Card balances may be cached from webhooks but should be fetched from Cashwyre for accuracy
 
 ---
 
@@ -912,7 +962,7 @@ NEXT_PUBLIC_FLARE_DAPP_DEFINITION=your-dapp-definition
 ## 📝 Notes
 
 - **No Passwords:** System uses email-based authentication with verification codes
-- **Auto-generated Data:** Phone numbers, addresses, dates of birth are auto-generated during card creation
+- **Auto-generated Data:** Phone numbers, addresses, dates of birth are auto-generated randomly during card creation and sent to Cashwyre, but NOT stored in Supabase
 - **Card Limits:** Users can have maximum 4 cards
 - **Request IDs:** All Cashwyre API requests use format `KARDS` + 12 alphanumeric characters
 - **Card Type:** All cards are "physical" and "visa" (hardcoded)
