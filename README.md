@@ -136,28 +136,45 @@ Stores minimal card reference information (NOT full card details).
 ---
 
 #### `transactions`
-Stores all transaction records.
+Stores reference records for tracking internal operations (NOT actual on-chain transactions).
+
+**Important:** This table does NOT store actual transaction data:
+- ❌ **Card transactions:** Fetched from Cashwyre API (`/CustomerCard/getCardTransactions`)
+- ❌ **Flare wallet transactions:** Fetched from on-chain RPC queries (blockchain state)
+- ✅ **Reference records only:** Tracks bridge operations, insurance fees, and top-up submissions for internal bookkeeping
 
 **Columns:**
 - `id` (uuid, primary key)
 - `user_id` (uuid, foreign key → users.id)
 - `card_id` (uuid, foreign key → cards.id, nullable)
-- `type` (text) - Transaction type:
-  - `card_creation` - Card creation payment
-  - `top_up` - Card top-up
-  - `card_purchase` - Card transaction
-  - `flare_send` - Flare wallet send
-  - `flare_receive` - Flare wallet receive
-  - `bridge` - Bridge transaction
-- `amount` (numeric) - Transaction amount
-- `status` (text) - "pending", "success", "failed"
-- `description` (text) - Transaction description
-- `metadata` (jsonb) - Additional transaction data
+- `type` (text) - Internal operation type:
+  - `bridge` - Bridge transaction reference (tracks submission)
+  - `insurance_fee` - Insurance fee payment reference
+  - `top_up` - Top-up operation reference (tracks submission)
+  - `card_creation` - Card creation operation reference
+- `amount` (numeric) - Operation amount (for reference only)
+- `status` (text) - "pending", "success", "failed" (internal status tracking)
+- `hash` (text) - Transaction hash (for reference/tracking)
+- `description` (text) - Operation description
+- `recipient_address` (text, nullable) - Recipient address (if applicable)
+- `sender_address` (text, nullable) - Sender address (if applicable)
+- `metadata` (jsonb) - Additional operation metadata
 - `created_at` (timestamp)
 - `updated_at` (timestamp)
 
-**Stored in Supabase:** ✅ Yes
-- All transactions are logged locally
+**What This Table Stores:**
+- ✅ **Bridge transaction references:** Tracks when bridge transactions are submitted (for status updates via webhooks)
+- ✅ **Insurance fee references:** Tracks $10 insurance fee payments
+- ✅ **Top-up operation references:** Tracks top-up submissions and their completion status
+
+**What This Table Does NOT Store:**
+- ❌ **Actual card transactions:** Card purchase transactions, card top-up confirmations, etc. - These come from Cashwyre API
+- ❌ **Actual Flare wallet transactions:** Send/receive transactions on Flare network - These come from on-chain RPC queries
+- ❌ **Full transaction history:** Only reference records for operations initiated through the platform
+
+**Stored in Supabase:** ⚠️ Reference Records Only
+- Used for internal operation tracking and status management
+- Actual transaction data is fetched from external sources (Cashwyre API or Flare RPC)
 
 ---
 
@@ -768,7 +785,8 @@ Authorization: Bearer <jwt-token>
 - **Real-time Data:** All balance, last4, expiry, and transactions are fetched fresh from Cashwyre API every time this endpoint is called
 - **Ownership Verification:** System verifies card belongs to authenticated user before fetching from Cashwyre
 - **Data Source:** Supabase provides reference data (card name, wallet address, creation date). Cashwyre provides all financial data (balance, transactions, expiry)
-- **Transactions:** Returns complete transaction history from Cashwyre API, sorted by date (newest first)
+    - **Transactions:** Returns complete transaction history from Cashwyre API (NOT from Supabase), sorted by date (newest first)
+    - **Data Source:** All transaction data comes directly from Cashwyre API, never from Supabase database
 - **Caching:** Cashwyre data is NOT cached - always fetched fresh for accuracy
 - **Performance:** Endpoint may take 2-4 seconds due to Cashwyre API call
 
@@ -858,9 +876,89 @@ Unfreezes a card.
 ---
 
 #### `GET /api/cards/[cardCode]/transactions`
-Gets transactions for a specific card.
+Gets transaction history for a specific card. **All transactions are fetched from Cashwyre API, NOT from Supabase.**
 
-**Stored in Supabase:** ✅ Yes (all transactions)
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**URL Parameters:**
+- `cardCode` (path parameter): The Cashwyre card code
+
+**Process:**
+1. Validates user authentication
+2. Verifies user owns the card (queries Supabase `cards` table)
+3. Calls Cashwyre API: `POST /CustomerCard/getCardTransactions`
+   ```json
+   {
+     "appId": "<CASHWYRE_APP_ID>",
+     "businessCode": "<CASHWYRE_BUSINESS_CODE>",
+     "requestId": "KARDSxxxxxxxxxxxx",
+     "cardCode": "<cardCode>"
+   }
+   ```
+4. Returns transaction list from Cashwyre API
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "transactions": [
+    {
+      "id": "txn123456",
+      "amount": -50.00,
+      "description": "Purchase at Amazon",
+      "merchant": "Amazon",
+      "date": "2024-01-15T14:30:00Z",
+      "type": "debit",
+      "status": "completed",
+      "cardCode": "CARD123456789",
+      ...
+    },
+    {
+      "id": "txn123455",
+      "amount": 100.00,
+      "description": "Top-up",
+      "date": "2024-01-15T10:00:00Z",
+      "type": "credit",
+      "status": "completed",
+      ...
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **404 Not Found:**
+  ```json
+  {
+    "success": false,
+    "message": "Card not found"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to fetch transactions from Cashwyre"
+  }
+  ```
+
+**Data Source:** ❌ NOT Stored in Supabase
+- **All card transactions come from Cashwyre API** (`/CustomerCard/getCardTransactions`)
+- Transactions are fetched fresh every time this endpoint is called
+- No transaction data is cached or stored in Supabase
+- Supabase only stores the `card_code` reference used to fetch transactions from Cashwyre
 
 ---
 
@@ -1340,9 +1438,135 @@ Gets wallet address.
 ---
 
 #### `GET /api/wallet/transactions`
-Gets wallet transactions.
+Gets wallet transaction history. **All actual Flare wallet transactions are fetched from on-chain RPC queries, NOT from Supabase.** Supabase only stores reference records for platform operations (bridge, insurance, top-up).
 
-**Stored in Supabase:** ✅ Yes (from `transactions` table, filtered by type)
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body:** None (GET request)
+
+**Process:**
+1. Validates user authentication
+2. Gets user's wallet address from `wallets` table
+3. **Option 1 - Current Implementation (Reference Records Only):**
+   - Queries Supabase `transactions` table for reference records:
+     ```sql
+     SELECT * FROM transactions 
+     WHERE user_id = <userId> 
+     AND type IN ('radix_send', 'radix_receive', 'bridge', 'insurance_fee', 'top_up')
+     ORDER BY created_at DESC
+     LIMIT 50
+     ```
+   - Returns reference records (bridge submissions, insurance fees, top-up operations)
+   - **Note:** These are NOT actual on-chain transactions, only platform operation references
+
+   **Option 2 - Correct Implementation (On-Chain Queries):**
+   - Queries Flare network via RPC for actual on-chain transactions:
+     ```javascript
+     // Get transaction history from Flare RPC
+     const response = await fetch(`${FLARE_RPC_URL}/transactions/history`, {
+       method: 'POST',
+       body: JSON.stringify({
+         address: walletAddress,
+         network_id: 'flare_mainnet'
+       })
+     });
+     ```
+   - Returns actual blockchain transactions (send, receive, etc.)
+   - Fetches from on-chain state, not from database
+
+4. Returns transaction list
+
+**Success Response (200) - Current Implementation:**
+```json
+{
+  "success": true,
+  "transactions": [
+    {
+      "id": "uuid",
+      "type": "bridge",
+      "amount": 100.00,
+      "status": "success",
+      "hash": "txid_129x9zx0x7x9zx...",
+      "description": "Bridging funds to card wallet",
+      "created_at": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "uuid",
+      "type": "insurance_fee",
+      "amount": 10.00,
+      "status": "success",
+      "hash": "txid_229x9zx0x7x9zx...",
+      "description": "Card creation insurance fee",
+      "created_at": "2024-01-15T09:55:00Z"
+    }
+  ]
+}
+```
+
+**Success Response (200) - Correct Implementation (On-Chain):**
+```json
+{
+  "success": true,
+  "transactions": [
+    {
+      "txId": "txid_onchain_123...",
+      "type": "send",
+      "amount": 50.00,
+      "currency": "USDC",
+      "to": "account_tdx_2_129x9zx0x7x9zx...",
+      "from": "account_tdx_2_129x9zx0x7x9zx...",
+      "status": "committed",
+      "timestamp": "2024-01-15T14:30:00Z",
+      "fee": 0.01,
+      "blockHeight": 12345678
+    },
+    {
+      "txId": "txid_onchain_124...",
+      "type": "receive",
+      "amount": 100.00,
+      "currency": "USDC",
+      "from": "account_tdx_2_229x9zx0x7x9zx...",
+      "to": "account_tdx_2_129x9zx0x7x9zx...",
+      "status": "committed",
+      "timestamp": "2024-01-15T12:00:00Z",
+      "blockHeight": 12345670
+    }
+  ]
+}
+```
+
+**Error Responses:**
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to fetch transactions"
+  }
+  ```
+
+**Important Notes:**
+- **Actual Flare Transactions:** Should be fetched from on-chain RPC queries, NOT from Supabase
+- **Supabase Storage:** Only stores reference records for platform operations (bridge, insurance, top-up) for internal tracking
+- **On-Chain Data:** Real wallet transactions (send/receive) exist on the Flare blockchain and should be queried via RPC
+- **Real-Time:** On-chain queries provide real-time, accurate transaction history directly from the blockchain
+- **Current Limitation:** Current implementation only returns reference records from Supabase, not actual on-chain transactions
+
+**Data Source:** 
+- ❌ **NOT Stored in Supabase** (actual on-chain transactions)
+- ⚠️ **Reference Records Only** (bridge, insurance, top-up operation tracking)
+- ✅ **Should Query Flare RPC** for actual on-chain transaction history
 
 ---
 
@@ -1439,10 +1663,13 @@ Handles payment webhook from Cashwyre.
 - `POST /CustomerCard/freeze` - Freezes a card
 - `POST /CustomerCard/unfreeze` - Unfreezes a card
 - `POST /CustomerCard/getCard` - **Gets full card details** (called every time details are needed)
-- `POST /CustomerCard/getCardTransactions` - Gets card transactions
+- `POST /CustomerCard/getCardTransactions` - **Gets all card transactions** (NOT stored in Supabase, fetched fresh every time)
 - `POST /CustomerAddress/createAddress` - Creates Ethereum deposit address
 
-**Important:** Card details are fetched from `/CustomerCard/getCard` every time they're needed. Supabase only stores the `card_code` reference to call this endpoint.
+**Important Transaction Data:**
+- **Card details:** Fetched from `/CustomerCard/getCard` every time they're needed. Supabase only stores the `card_code` reference.
+- **Card transactions:** Fetched from `/CustomerCard/getCardTransactions` every time they're needed. **NOT stored in Supabase.** All card purchase transactions, top-up confirmations, and card activity come directly from Cashwyre API.
+- **No caching:** Card transaction data is always fetched fresh from Cashwyre API, never cached or stored locally.
 
 **Authentication:**
 - Bearer token in `Authorization` header
@@ -1482,6 +1709,81 @@ Handles payment webhook from Cashwyre.
 - Sending support form submissions to Telegram chat/group
 
 **Stored in Supabase:** ❌ No (messages sent directly to Telegram)
+
+---
+
+### Flare RPC (Radix Network)
+
+**Purpose:** Queries on-chain blockchain data from the Flare (Radix) network for wallet balances and transaction history.
+
+**Base URL:** Configured via `RADIX_RPC_URL` environment variable
+
+**Endpoints Used:**
+- `POST /state/entity` - Gets wallet state (balances, vaults)
+- `POST /transaction/submit` - Submits signed transactions to network
+- `GET /transaction/status/{txId}` - Gets transaction status
+- `POST /transactions/history` - Gets transaction history for an address (should be implemented)
+
+**Used For:**
+- **Wallet Balances:**
+  - USDC balance queries (`getUSDCBalance()`)
+  - XRD balance queries (`getXRDBalance()`)
+  - Balance checks before transactions
+  
+- **Transaction History:**
+  - On-chain Flare wallet transaction history
+  - Send/receive transactions directly from blockchain
+  - Transaction status queries
+  - Block height and timestamp data
+
+- **Transaction Submission:**
+  - Submitting signed transactions to Flare network
+  - Bridge transaction submissions
+  - Direct send/receive transactions
+
+**Important Transaction Data:**
+- **Wallet transactions:** All actual Flare wallet transactions (send/receive) come from on-chain RPC queries
+- **NOT stored in Supabase:** Real on-chain transactions exist on the blockchain and must be queried via RPC
+- **Real-time data:** All transaction history is fetched directly from blockchain state, never cached
+- **Current implementation limitation:** Currently only queries reference records from Supabase for bridge/insurance/top-up operations, but actual wallet transactions should be queried from RPC
+
+**Data Source:**
+- ✅ **Wallet balances:** Fetched from Flare RPC (`POST /state/entity`)
+- ✅ **Transaction history:** Should be fetched from Flare RPC (not currently fully implemented)
+- ❌ **NOT stored in Supabase:** Actual on-chain transactions are not stored, only queried from blockchain
+
+**Authentication:**
+- No authentication required (public RPC endpoint)
+- Network ID specified in requests (`RADIX_NETWORK_ID` environment variable)
+
+**Request Format:**
+```json
+{
+  "entity_addresses": ["account_tdx_2_129x9zx0x7x9zx..."],
+  "network_id": "mainnet"
+}
+```
+
+**Response Format:**
+```json
+{
+  "items": [
+    {
+      "fungible_vaults": [
+        {
+          "resource_address": "resource_rdx1tknxxxxxxxxxradxrdxxxxxxxxx009923554798xxxxxxxxxradxrdx",
+          "amount": "1000000000000000000"
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Stored in Supabase:** ❌ No
+- Wallet balances are fetched from RPC, not stored
+- Transaction history should be queried from RPC, not stored
+- Only reference records for platform operations (bridge, insurance) are stored in Supabase for tracking
 
 ---
 
@@ -2104,10 +2406,14 @@ T+20m:    Top-up complete, balance updated
   - Temporary `form_data` (used during creation only)
   - Balance, last4, expiry (updated from webhooks but may be stale)
 
-- **Transactions:**
-  - All transaction records
-  - Amounts, status, descriptions
+- **Transaction Reference Records:**
+  - Internal operation tracking records only
+  - Bridge transaction references (submission tracking)
+  - Insurance fee payment references
+  - Top-up operation references
+  - Amounts, status, transaction hashes (for reference)
   - Metadata (JSONB)
+  - **Note:** These are NOT actual transaction data, only platform operation tracking
 
 - **Referrals:**
   - Referral relationships
@@ -2157,13 +2463,20 @@ T+20m:    Top-up complete, balance updated
 - **Telegram Messages:**
   - Support messages are sent to Telegram but not stored in database
 
+- **Actual Transaction Data:**
+  - **Card transactions:** NOT stored - always fetched from Cashwyre API (`/CustomerCard/getCardTransactions`)
+  - **Flare wallet transactions:** NOT stored - should be queried from on-chain RPC (blockchain state)
+  - **On-chain transaction history:** Exists on Flare blockchain, must be queried via RPC, not stored in database
+  
 - **Bridge Transaction Details:**
-  - Bridge transactions are executed but detailed logs are not stored
-  - Only transaction records (amount, status) are stored
+  - Bridge transactions are executed on-chain
+  - Only reference records are stored in Supabase (for tracking submission status)
+  - Full transaction details exist on blockchain and should be queried via RPC
 
 - **Real-time Balances:**
-  - Wallet balances are fetched from external APIs, not stored
+  - Wallet balances (USDC, XRD) are fetched from Flare RPC, not stored
   - Card balances may be cached from webhooks but should be fetched from Cashwyre for accuracy
+  - All financial data is real-time from external sources (RPC or Cashwyre API)
 
 ---
 
@@ -2361,8 +2674,8 @@ The application is deployed on **Vercel** as serverless functions. Each API rout
 - `BottomNav` - Bottom navigation bar
 
 **API Calls:**
-- `GET /api/wallet/balance` - Fetches USDC/XRD balances and wallet address
-- `GET /api/wallet/transactions` - Fetches transaction history
+- `GET /api/wallet/balance` - Fetches USDC/XRD balances from Flare RPC and wallet address from Supabase
+- `GET /api/wallet/transactions` - Fetches transaction history (should query Flare RPC for on-chain transactions, currently returns reference records from Supabase)
 
 ---
 
@@ -2469,13 +2782,14 @@ The application is deployed on **Vercel** as serverless functions. Each API rout
   - "Top Up" button - navigates to `/cards/[cardCode]/topup`
   
 - **Transaction History:**
-  - List of all card transactions from Cashwyre API
+  - List of all card transactions fetched from Cashwyre API (NOT from Supabase)
   - Transaction details:
     - Date/time
     - Description/merchant
     - Amount (debit/credit)
     - Type
     - Status
+  - **Data Source:** All card transactions come from Cashwyre API `/CustomerCard/getCardTransactions` endpoint
 
 **Data Source:**
 - Card reference: From Supabase (`card_code`, `card_name`, `status`)
