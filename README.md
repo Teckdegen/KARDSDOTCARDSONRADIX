@@ -255,7 +255,7 @@ Creates a new user account.
 ---
 
 #### `POST /api/auth/send-code`
-Resends verification code.
+Sends a verification code to an existing user's email address for login purposes. This endpoint is used when a user wants to log in to their existing account.
 
 **Request Body:**
 ```json
@@ -264,16 +264,132 @@ Resends verification code.
 }
 ```
 
+**Validation Rules:**
+- `email` (required): Must be a valid email format (RFC 5322 compliant)
+- Email must exist in the `users` table (user must have registered first)
+
 **Process:**
-1. Validates email exists
-2. Generates new 6-digit code
-3. Sends via Resend
-4. Stores in `auth_codes` table
+1. Validates email format using `isValidEmail()` utility function
+2. Checks if email exists in `users` table
+3. If email doesn't exist, returns 404 error: "Email not found. Please create an account first."
+4. Generates a new 6-digit numeric code using `generateAuthCode()` (random number between 100000-999999)
+5. Sets expiration time to 10 minutes from current time
+6. Stores code in `auth_codes` table with fields:
+   - `email`: Lowercased email address
+   - `code`: 6-digit string
+   - `expires_at`: Timestamp (current time + 10 minutes)
+   - `used`: false
+7. Sends email via Resend API using `sendAuthCode()` function
+8. Returns success response
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Verification code sent to your email"
+}
+```
+
+**Error Responses:**
+- **400 Bad Request:**
+  ```json
+  {
+    "success": false,
+    "message": "Valid email is required"
+  }
+  ```
+- **404 Not Found:**
+  ```json
+  {
+    "success": false,
+    "message": "Email not found. Please create an account first."
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to generate code"
+  }
+  ```
+
+**Notes:**
+- Codes expire after 10 minutes
+- Multiple codes can exist for the same email (only the most recent valid one is checked during verification)
+- Codes are single-use (marked as `used: true` after successful verification)
+
+---
+
+#### `POST /api/auth/resend-code`
+Resends a verification code to a user's email with rate limiting protection. This endpoint checks if a valid code was recently sent and prevents spamming by enforcing a 10-minute cooldown period.
+
+**Request Body:**
+```json
+{
+  "email": "john@example.com"
+}
+```
+
+**Validation Rules:**
+- `email` (required): Must be a valid email format
+- Rate limiting: Cannot request new code if previous code was created less than 10 minutes ago
+
+**Process:**
+1. Validates email format
+2. Checks for existing unused, unexpired code for this email
+3. If valid code exists and less than 10 minutes have passed since creation:
+   - Calculates remaining time until resend is allowed
+   - Returns 400 error with remaining minutes and seconds
+4. If code expired or 10 minutes passed:
+   - Marks all previous unused codes for this email as `used: true`
+   - Generates new 6-digit code
+   - Sets expiration to 10 minutes from now
+   - Stores code in `auth_codes` table
+   - Sends email via Resend
+   - Returns success
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "New verification code sent to your email"
+}
+```
+
+**Error Responses:**
+- **400 Bad Request (Rate Limited):**
+  ```json
+  {
+    "success": false,
+    "message": "Please wait 5 minutes before requesting a new code",
+    "canResend": false,
+    "remainingSeconds": 300
+  }
+  ```
+- **400 Bad Request (Invalid Email):**
+  ```json
+  {
+    "success": false,
+    "message": "Valid email is required"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to generate code"
+  }
+  ```
+
+**Notes:**
+- Provides remaining time in both minutes and seconds for user feedback
+- Prevents code spam by enforcing cooldown period
+- Automatically invalidates previous codes when new one is generated
 
 ---
 
 #### `POST /api/auth/verify-code`
-Verifies email and logs user in.
+Verifies the email verification code and authenticates the user. Upon successful verification, generates a JWT token for subsequent authenticated requests.
 
 **Request Body:**
 ```json
@@ -283,69 +399,381 @@ Verifies email and logs user in.
 }
 ```
 
-**Process:**
-1. Validates code matches and hasn't expired
-2. Marks code as used
-3. Generates JWT token
-4. Returns token
+**Validation Rules:**
+- `email` (required): Must be provided
+- `code` (required): Must be provided as 6-digit string
+- Code must exist for the email
+- Code must not be expired (`expires_at > current time`)
+- Code must not be used (`used = false`)
 
-**Response:**
+**Process:**
+1. Validates both email and code are provided
+2. Queries `auth_codes` table for matching record:
+   - Filters by email (lowercased)
+   - Filters by exact code match
+   - Filters by `used = false`
+   - Filters by `expires_at > current timestamp`
+   - Orders by `created_at DESC` to get most recent
+   - Limits to 1 result
+3. If no valid code found, returns 401 Unauthorized
+4. If valid code found:
+   - Marks code as used (`used = true`) in database
+   - Queries `users` table to find user by email
+   - If user doesn't exist, returns 404 (should not happen if using send-code first)
+   - Generates JWT token using `generateToken()` with payload:
+     ```json
+     {
+       "userId": "user-uuid",
+       "email": "user@example.com"
+     }
+     ```
+   - Returns token and user data
+
+**Success Response (200):**
 ```json
 {
   "success": true,
-  "token": "jwt-token",
-  "user": { ... }
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1dWlkIiwiemVtYWlsIjoidXNlckBleGFtcGxlLmNvbSIsImlhdCI6MTYzMzAyNzIwMCwiZXhwIjoxNjMzMTEzNjAwfQ.signature",
+  "user": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "john@example.com"
+  }
 }
 ```
+
+**Error Responses:**
+- **400 Bad Request:**
+  ```json
+  {
+    "success": false,
+    "message": "Email and code are required"
+  }
+  ```
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Invalid or expired code"
+  }
+  ```
+- **404 Not Found:**
+  ```json
+  {
+    "success": false,
+    "message": "Please register first"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Internal server error"
+  }
+  ```
+
+**JWT Token Details:**
+- **Algorithm:** HS256 (HMAC SHA-256)
+- **Payload:** Contains `userId` (UUID) and `email` (string)
+- **Expiration:** Token expires after configured time (check JWT_SECRET and token expiration settings)
+- **Usage:** Token must be included in `Authorization: Bearer <token>` header for authenticated requests
+- **Storage:** Client stores token in `localStorage.setItem('token', token)`
+
+**Security Notes:**
+- Codes are single-use (immediately marked as used)
+- Codes expire after 10 minutes
+- Most recent code takes precedence if multiple exist
+- Email is case-insensitive (lowercased before comparison)
 
 ---
 
 #### `POST /api/auth/logout`
-Logs user out (client-side token removal).
-
----
-
-### Cards
-
-#### `GET /api/cards`
-Gets all cards for authenticated user.
+Logs the user out by invalidating the session. Note: This is primarily a client-side operation as JWT tokens are stateless. The server endpoint exists for consistency but token removal happens client-side.
 
 **Headers:**
 ```
 Authorization: Bearer <token>
 ```
 
-**Response:**
+**Request Body:**
+```json
+{}
+```
+(No body required)
+
+**Process:**
+1. Client removes token from `localStorage.removeItem('token')`
+2. Client redirects to `/login` page
+3. Server endpoint exists but does not perform token invalidation (stateless JWT design)
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Logged out successfully"
+}
+```
+
+**Notes:**
+- JWT tokens are stateless and cannot be "invalidated" server-side without a token blacklist
+- For production, consider implementing a token blacklist in Redis/database if you need server-side logout
+- Client-side logout is sufficient for most use cases where token expiration is used
+
+---
+
+### Cards
+
+#### `GET /api/cards`
+Retrieves all cards belonging to the authenticated user. Returns cards from Supabase with cached balance, last4, and expiry data. For real-time accurate data, use `GET /api/cards/[cardCode]` to fetch fresh data from Cashwyre API.
+
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body:** None (GET request)
+
+**Process:**
+1. Extracts and validates JWT token from `Authorization` header
+2. Retrieves `userId` from token payload
+3. Queries `cards` table:
+   ```sql
+   SELECT * FROM cards WHERE user_id = <userId> ORDER BY created_at DESC
+   ```
+4. Returns array of card records with all fields from Supabase
+
+**Success Response (200):**
 ```json
 {
   "success": true,
   "cards": [
     {
-      "id": "uuid",
-      "card_code": "CARD123",
-      "card_name": "My Card",
-      "balance": 100.00,
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "user_id": "550e8400-e29b-41d4-a716-446655440001",
+      "card_code": "CARD123456789",
+      "customer_code": "CUST123456789",
+      "card_name": "My Personal Card",
+      "card_brand": "visa",
+      "card_type": "physical",
+      "card_wallet_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
       "status": "active",
+      "balance": 100.50,
+      "last4": "1234",
+      "expiry_on": "12/2025",
+      "form_data": null,
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:35:00Z"
+    },
+    {
+      "id": "660e8400-e29b-41d4-a716-446655440000",
+      "user_id": "550e8400-e29b-41d4-a716-446655440001",
+      "card_code": "CARD987654321",
+      "card_name": "Business Card",
+      "status": "processing",
+      "balance": null,
+      "last4": null,
+      "expiry_on": null,
       ...
     }
   ]
 }
 ```
 
-**Stored in Supabase:** ✅ Yes
+**Error Responses:**
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to fetch cards"
+  }
+  ```
+
+**Status Values:**
+- `"processing"`: Card creation in progress (waiting for webhooks)
+- `"active"`: Card is active and ready to use
+- `"frozen"`: Card has been frozen by user
+- `"cancelled"`: Card creation was cancelled
+
+**Notes:**
+- Returns cards ordered by creation date (newest first)
+- Balance, last4, and expiry are cached values from webhooks (may be stale)
+- For accurate real-time data, use `GET /api/cards/[cardCode]`
+- Cards with `status = "processing"` may have `card_code = null` until webhook completes
+- `form_data` field is null for completed cards (only used during creation)
+
+**Stored in Supabase:** ✅ Yes (all fields returned are from Supabase `cards` table)
 
 ---
 
 #### `GET /api/cards/[cardCode]`
-Gets specific card details.
+Retrieves detailed information for a specific card. This endpoint combines data from Supabase (reference) and Cashwyre API (real-time details) to provide complete card information including transactions.
+
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**URL Parameters:**
+- `cardCode` (path parameter): The Cashwyre card code (e.g., "CARD123456789")
+
+**Request Body:** None (GET request)
 
 **Process:**
-1. Verifies user owns card (checks `card_code` in Supabase)
-2. Fetches full card details from Cashwyre API (`/CustomerCard/getCard`)
-3. Returns combined data (Supabase reference + Cashwyre full details)
+1. Extracts and validates JWT token from `Authorization` header
+2. Retrieves `userId` from token payload
+3. Queries Supabase to find card:
+   ```sql
+   SELECT * FROM cards WHERE card_code = <cardCode> AND user_id = <userId>
+   ```
+4. If card not found, returns 404 error
+5. If card found and belongs to user:
+   - Extracts `card_code` from Supabase record
+   - Calls Cashwyre API: `POST /CustomerCard/getCard`
+   - Cashwyre request payload:
+     ```json
+     {
+       "appId": "<CASHWYRE_APP_ID>",
+       "businessCode": "<CASHWYRE_BUSINESS_CODE>",
+       "requestId": "KARDSxxxxxxxxxxxx",
+       "cardCode": "<cardCode>"
+     }
+     ```
+   - Receives full card details from Cashwyre:
+     ```json
+     {
+       "success": true,
+       "data": {
+         "cardCode": "CARD123456789",
+         "customerCode": "CUST123456789",
+         "balance": 150.75,
+         "last4": "1234",
+         "expiryOn": "12/2025",
+         "status": "active",
+         "cardName": "My Personal Card",
+         "transactions": [
+           {
+             "id": "txn1",
+             "amount": 50.00,
+             "description": "Purchase at Store",
+             "date": "2024-01-15T10:00:00Z",
+             "type": "debit"
+           }
+         ],
+         ...
+       }
+     }
+     ```
+6. Merges Supabase reference data with Cashwyre fresh data
+7. Returns combined response
 
-**Stored in Supabase:** ⚠️ Only reference (`card_code`)
-**Full details:** Always fetched from Cashwyre API in real-time
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "card": {
+    // From Supabase (reference data):
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "user_id": "550e8400-e29b-41d4-a716-446655440001",
+    "card_name": "My Personal Card",
+    "card_type": "physical",
+    "card_brand": "visa",
+    "status": "active",
+    "card_wallet_address": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:35:00Z",
+    
+    // From Cashwyre API (fresh real-time data):
+    "card_code": "CARD123456789",
+    "customer_code": "CUST123456789",
+    "balance": 150.75,
+    "last4": "1234",
+    "expiryOn": "12/2025",
+    "currency": "USD",
+    "transactions": [
+      {
+        "id": "txn123",
+        "amount": -50.00,
+        "description": "Purchase at Amazon",
+        "merchant": "Amazon",
+        "date": "2024-01-15T14:30:00Z",
+        "type": "debit",
+        "status": "completed"
+      },
+      {
+        "id": "txn124",
+        "amount": 100.00,
+        "description": "Top-up",
+        "date": "2024-01-15T10:00:00Z",
+        "type": "credit",
+        "status": "completed"
+      }
+    ],
+    "metadata": {
+      "issuer": "Cashwyre",
+      "cardNetwork": "Visa",
+      ...
+    }
+  }
+}
+```
+
+**Error Responses:**
+- **400 Bad Request:**
+  ```json
+  {
+    "success": false,
+    "message": "Card code is required"
+  }
+  ```
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **404 Not Found:**
+  ```json
+  {
+    "success": false,
+    "message": "Card not found"
+  }
+  ```
+- **500 Internal Server Error (Supabase):**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to fetch card"
+  }
+  ```
+- **500 Internal Server Error (Cashwyre API):**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to fetch card details from Cashwyre"
+  }
+  ```
+
+**Notes:**
+- **Real-time Data:** All balance, last4, expiry, and transactions are fetched fresh from Cashwyre API every time this endpoint is called
+- **Ownership Verification:** System verifies card belongs to authenticated user before fetching from Cashwyre
+- **Data Source:** Supabase provides reference data (card name, wallet address, creation date). Cashwyre provides all financial data (balance, transactions, expiry)
+- **Transactions:** Returns complete transaction history from Cashwyre API, sorted by date (newest first)
+- **Caching:** Cashwyre data is NOT cached - always fetched fresh for accuracy
+- **Performance:** Endpoint may take 2-4 seconds due to Cashwyre API call
+
+**Stored in Supabase:** ⚠️ Only reference (`card_code`, `card_name`, `user_id`, `card_wallet_address`, etc.)
+**Full details:** Always fetched from Cashwyre API in real-time (never cached)
 
 ---
 
@@ -433,6 +861,396 @@ Unfreezes a card.
 Gets transactions for a specific card.
 
 **Stored in Supabase:** ✅ Yes (all transactions)
+
+---
+
+### Card Creation Helpers
+
+These endpoints are used internally by the frontend during the multi-step card creation process. They provide quotes and prepare transactions before final submission.
+
+#### `POST /api/cards/create/bridge-quote`
+Gets a bridge quote for the card creation amount. This endpoint is called during card creation to get the transaction manifest needed to bridge funds from Flare to Ethereum.
+
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body:**
+```json
+{
+  "phoneCode": "+1",
+  "phoneNumber": "1234567890",
+  "dateOfBirth": "1990-01-01",
+  "homeAddressNumber": "123",
+  "homeAddress": "Main Street",
+  "cardName": "My Card",
+  "initialAmount": 15,
+  "walletAddress": "account_tdx_2_129x9zx0x7x9zx..."
+}
+```
+
+**Validation Rules:**
+- `walletAddress` (required): Flare wallet address
+- `initialAmount` (required): Minimum $15 USD
+- Other fields are optional (used for form data storage)
+
+**Process:**
+1. Validates user authentication via JWT token
+2. Gets user details from `users` table (first_name, last_name, email, eth_deposit_address)
+3. Finds unused Ethereum address from previous cancelled card creations OR creates new one via Cashwyre API
+4. Checks USDC balance using `getUSDCBalance(walletAddress)` - must have at least `initialAmount`
+5. Checks XRD balance using `checkXRDForBridge(walletAddress)` - must have ~410 XRD for bridge fees
+6. Gets bridge quote from Astrolescent Bridge API:
+   ```javascript
+   POST /quote
+   {
+     "from": "flare",
+     "to": "ethereum",
+     "amount": initialAmount,
+     "fromAddress": walletAddress,
+     "toAddress": ethAddress
+   }
+   ```
+7. Returns bridge quote with manifest
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "manifest": "CALL_METHOD...",
+  "quote": {
+    "route": {
+      "tx": {
+        "manifest": "CALL_METHOD...",
+        "message": "..."
+      },
+      "estimatedTime": 900,
+      "fees": {
+        "bridge": 0.5,
+        "gas": 0.01
+      }
+    }
+  },
+  "ethAddress": "0x742d35Cc6634C0532925a3b844Bc9e7595f0bEb"
+}
+```
+
+**Error Responses:**
+- **400 Bad Request (Insufficient USDC):**
+  ```json
+  {
+    "success": false,
+    "message": "Insufficient USDC balance. You need $15 USDC. You have $10.00 USDC"
+  }
+  ```
+- **400 Bad Request (Insufficient XRD):**
+  ```json
+  {
+    "success": false,
+    "message": "Insufficient XRD for bridge transaction. You need roughly 410 XRD. Current: 100.00 XRD"
+  }
+  ```
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to get bridge quote"
+  }
+  ```
+
+**Notes:**
+- Bridge quote expires after a certain time (check Astrolescent Bridge API documentation)
+- Quote includes transaction manifest that must be signed and submitted
+- Ethereum address is reused from cancelled card creations if available
+- Used internally by frontend before submitting final card creation
+
+---
+
+#### `POST /api/cards/create/insurance-quote`
+Gets the insurance fee quote and transaction manifest. This endpoint prepares the $10 insurance fee payment that must be sent before card creation.
+
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body:**
+```json
+{
+  "walletAddress": "account_tdx_2_129x9zx0x7x9zx..."
+}
+```
+
+**Validation Rules:**
+- `walletAddress` (required): Flare wallet address
+- USDC balance must be at least $10
+
+**Process:**
+1. Validates user authentication
+2. Gets insurance wallet address from `CASHBACK_WALLET_ADDRESS` environment variable
+3. Checks USDC balance using `getUSDCBalance(walletAddress)` - must have at least $10
+4. Builds transfer manifest using `buildTransferManifest()`:
+   ```javascript
+   buildTransferManifest(
+     walletAddress,           // From: User's Flare wallet
+     insuranceWalletAddress,  // To: Insurance wallet (CASHBACK_WALLET_ADDRESS)
+     10                       // Amount: $10 USDC
+   )
+   ```
+5. Returns manifest and payment details
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "manifest": "CALL_METHOD...",
+  "amount": 10,
+  "recipient": "account_tdx_2_129x9zx0x7x9zx..."
+}
+```
+
+**Error Responses:**
+- **400 Bad Request (Insufficient USDC):**
+  ```json
+  {
+    "success": false,
+    "message": "Insufficient USDC balance. You need $10 USDC. You have $5.00 USDC"
+  }
+  ```
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **500 Internal Server Error (Missing Config):**
+  ```json
+  {
+    "success": false,
+    "message": "Insurance wallet not configured"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to generate insurance quote"
+  }
+  ```
+
+**Insurance Fee Details:**
+- **Amount:** Fixed $10 USDC per card creation
+- **Recipient:** Configured in `CASHBACK_WALLET_ADDRESS` environment variable
+- **Purpose:** Insurance fee required by Cashwyre before card issuance
+- **Timing:** Must be paid before bridge transaction is submitted
+- **Transaction Type:** Direct USDC transfer on Flare network
+
+**Notes:**
+- Insurance fee is separate from the card funding amount
+- Total needed for card creation = $10 insurance + initialAmount + ~410 XRD for gas
+- Manifest must be signed with user's private key and submitted to Flare network
+- Used internally by frontend during multi-step card creation process
+
+---
+
+#### `POST /api/cards/create/confirm-insurance`
+Confirms that the insurance fee payment has been completed. This endpoint stores the transaction hash to track insurance payment before proceeding with card creation.
+
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**Request Body:**
+```json
+{
+  "walletAddress": "account_tdx_2_129x9zx0x7x9zx...",
+  "transactionHash": "txid_129x9zx0x7x9zx..."
+}
+```
+
+**Validation Rules:**
+- `walletAddress` (required): Flare wallet address
+- `transactionHash` (required): Transaction hash from insurance payment
+
+**Process:**
+1. Validates user authentication
+2. Validates both walletAddress and transactionHash are provided
+3. Stores insurance payment confirmation (implementation may vary - could use session storage, temporary table, or Redis)
+4. Returns success with transaction hash
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "message": "Insurance payment confirmed",
+  "transactionHash": "txid_129x9zx0x7x9zx..."
+}
+```
+
+**Error Responses:**
+- **400 Bad Request:**
+  ```json
+  {
+    "success": false,
+    "message": "Wallet address and transaction hash are required"
+  }
+  ```
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to confirm insurance payment"
+  }
+  ```
+
+**Notes:**
+- This endpoint is used to confirm insurance payment before proceeding with bridge transaction
+- Transaction verification happens when creating the card (checks blockchain)
+- In production, you might want to verify the transaction on-chain before confirming
+- Used internally by frontend to track multi-step payment flow
+
+---
+
+#### `POST /api/cards/[cardCode]/topup/quote`
+Gets a bridge quote for card top-up. This endpoint is called during the top-up process to get the transaction manifest needed to bridge funds from Flare to Ethereum for the card's wallet address.
+
+**Authentication:** Required (JWT token)
+
+**Headers:**
+```
+Authorization: Bearer <jwt-token>
+```
+
+**URL Parameters:**
+- `cardCode` (path parameter): The Cashwyre card code
+
+**Request Body:**
+```json
+{
+  "amount": 50,
+  "walletAddress": "account_tdx_2_129x9zx0x7x9zx..."
+}
+```
+
+**Validation Rules:**
+- `amount` (required): Minimum $6 USD
+- `walletAddress` (required): Flare wallet address
+- Card must belong to authenticated user
+
+**Process:**
+1. Validates user authentication
+2. Verifies user owns the card (queries `cards` table where `card_code = cardCode AND user_id = userId`)
+3. Validates amount is at least $6
+4. Checks card has `card_wallet_address` (Ethereum address for receiving funds)
+5. Checks USDC balance using `getUSDCBalance(walletAddress)` - must have at least `amount`
+6. Checks XRD balance using `checkXRDForBridge(walletAddress)` - must have ~410 XRD for bridge fees
+7. Gets bridge quote from Astrolescent Bridge API:
+   ```javascript
+   POST /quote
+   {
+     "from": "flare",
+     "to": "ethereum",
+     "amount": amount,
+     "fromAddress": walletAddress,
+     "toAddress": card.card_wallet_address
+   }
+   ```
+8. Returns bridge quote with manifest
+
+**Success Response (200):**
+```json
+{
+  "success": true,
+  "manifest": "CALL_METHOD...",
+  "quote": {
+    "route": {
+      "tx": {
+        "manifest": "CALL_METHOD...",
+        "message": "..."
+      },
+      "estimatedTime": 900,
+      "fees": {
+        "bridge": 0.5,
+        "gas": 0.01
+      }
+    }
+  }
+}
+```
+
+**Error Responses:**
+- **400 Bad Request (Invalid Amount):**
+  ```json
+  {
+    "success": false,
+    "message": "Minimum top-up amount is $6 USDC"
+  }
+  ```
+- **400 Bad Request (Insufficient USDC):**
+  ```json
+  {
+    "success": false,
+    "message": "Insufficient USDC balance. You need $50 USDC. You have $30.00 USDC"
+  }
+  ```
+- **400 Bad Request (Insufficient XRD):**
+  ```json
+  {
+    "success": false,
+    "message": "Insufficient XRD for bridge transaction. You need roughly 410 XRD for Ethereum tx cost and bridge fee. Current: 200.00 XRD"
+  }
+  ```
+- **401 Unauthorized:**
+  ```json
+  {
+    "success": false,
+    "message": "Unauthorized"
+  }
+  ```
+- **404 Not Found:**
+  ```json
+  {
+    "success": false,
+    "message": "Card not found"
+  }
+  ```
+- **500 Internal Server Error:**
+  ```json
+  {
+    "success": false,
+    "message": "Failed to get bridge quote"
+  }
+  ```
+
+**Notes:**
+- Bridge quote expires after a certain time (must use quote promptly)
+- Quote includes transaction manifest that must be signed and submitted
+- Funds are bridged to the card's `card_wallet_address` (unique Ethereum address per card)
+- Processing fee of $2.50 is deducted when Cashwyre processes the top-up
+- Used internally by frontend before submitting final top-up transaction
 
 ---
 
@@ -1428,6 +2246,549 @@ The application is deployed on **Vercel** as serverless functions. Each API rout
 - **Support:** Telegram Bot API
 - **Authentication:** JWT tokens
 - **Encryption:** AES (for private keys)
+
+---
+
+## 🎨 Frontend Pages & Components
+
+### Pages
+
+#### `/` (Home/Splash Screen)
+**Purpose:** Initial landing page with splash screen and authentication routing.
+
+**Features:**
+- Displays animated splash screen with logo
+- Auto-redirects based on authentication status:
+  - If token exists: Redirects to `/cards`
+  - If no token: Redirects to `/login`
+- Smooth transition animations
+
+**Components Used:**
+- `SplashScreen` component
+
+---
+
+#### `/login` (Login Page)
+**Purpose:** User authentication page with email-based login.
+
+**Features:**
+- Email input field
+- "Send Code" button - calls `POST /api/auth/send-code`
+- Code input field (6 digits) - uses `CodeInput` component
+- "Verify Code" button - calls `POST /api/auth/verify-code`
+- "Resend Code" link - calls `POST /api/auth/resend-code` (with rate limiting)
+- Redirects to `/cards` on successful authentication
+- Link to registration page
+
+**Components Used:**
+- `GlassInput` - Styled input fields
+- `GlassButton` - Styled buttons
+- `CodeInput` - 6-digit code input with auto-focus
+- `AnimatedBackground` - Global animated background
+
+**API Calls:**
+- `POST /api/auth/send-code`
+- `POST /api/auth/verify-code`
+- `POST /api/auth/resend-code`
+
+---
+
+#### `/register` (Registration Page)
+**Purpose:** New user account creation page.
+
+**Features:**
+- First name input field
+- Last name input field
+- Email input field
+- Referral code input field (optional)
+- "Create Account" button - calls `POST /api/auth/register`
+- Automatic wallet generation (backend)
+- Email verification code sent after registration
+- Code verification input (same flow as login)
+- Redirects to `/dashboard` on successful registration and verification
+
+**Validation:**
+- Email format validation
+- Referral code format validation
+- Checks if referral code exists in database
+
+**Components Used:**
+- `GlassInput`
+- `GlassButton`
+- `CodeInput`
+- `Header` - Back button
+
+**API Calls:**
+- `POST /api/auth/register`
+- `POST /api/auth/verify-code`
+
+---
+
+#### `/dashboard` (Dashboard Page)
+**Purpose:** Main user dashboard displaying wallet balance, send/receive functionality, and transaction history.
+
+**Features:**
+- **Wallet Balance Section:**
+  - USDC balance display (fetched from Flare network)
+  - XRD balance display (fetched from Flare network)
+  - Flare wallet address display
+  - QR code for receiving funds (opens in modal)
+  - "Send" button - opens `SendModal`
+  - "Receive" button - opens `ReceiveModal`
+  
+- **Wallet Activity Section:**
+  - Transaction list with:
+    - Transaction type (flare_send, flare_receive, bridge, top_up, card_creation, insurance_fee)
+    - Amount
+    - Status (pending, success, failed)
+    - Description
+    - Date/time
+  - Scrollable list (touches bottom of screen, doesn't touch wallet balance section)
+  - Real-time updates (refreshes on mount)
+
+**Layout:**
+- Full-height layout (fills entire screen)
+- Vertical spacing between sections (`space-y-6`)
+- Wallet balance card has `min-h-[220px]` for taller feel
+- Wallet activity card positioned at bottom
+
+**Components Used:**
+- `GlassCard` - Container for wallet balance and transactions
+- `GlassButton` - Send and Receive buttons
+- `SendModal` - Modal for sending funds
+- `ReceiveModal` - Modal for receiving funds with QR code
+- `Header` - Page title (hidden, only back button shown)
+- `BottomNav` - Bottom navigation bar
+
+**API Calls:**
+- `GET /api/wallet/balance` - Fetches USDC/XRD balances and wallet address
+- `GET /api/wallet/transactions` - Fetches transaction history
+
+---
+
+#### `/cards` (Cards List Page)
+**Purpose:** Displays all user's cards with quick actions.
+
+**Features:**
+- List of all user cards:
+  - Card name
+  - Card status (processing, active, frozen)
+  - Last 4 digits (if available)
+  - Balance (cached from Supabase, may be stale)
+  - Expiry date (if available)
+- "Create Card" button - navigates to `/cards/create`
+- Click card to view details - navigates to `/cards/[cardCode]`
+- Empty state when no cards exist
+- Loading state while fetching cards
+
+**Card Status Display:**
+- `processing` - Shows "Processing..." badge
+- `active` - Shows "Active" badge with green color
+- `frozen` - Shows "Frozen" badge with red color
+- `cancelled` - Shows "Cancelled" badge with gray color
+
+**Components Used:**
+- `GlassCard` - Individual card display
+- `GlassButton` - Create card button
+- `Header` - Page title (hidden)
+- `BottomNav` - Bottom navigation
+
+**API Calls:**
+- `GET /api/cards` - Fetches all user cards
+
+---
+
+#### `/cards/create` (Card Creation Page)
+**Purpose:** Multi-step form for creating a new debit card.
+
+**Features:**
+- **Step 1: Card Information**
+  - Card name input (required)
+  - Referral code input (optional)
+  - Initial amount input (minimum $15, required)
+  - "Next" button
+
+- **Step 2: Review & Confirm**
+  - Displays summary of entered information
+  - Shows: "Contact information will be generated automatically"
+  - Shows: "Address information will be generated automatically"
+  - "Create Card" button - calls `POST /api/cards/create`
+
+**Auto-Generated Fields (Backend, Not Shown to User):**
+- Phone country code (random selection from all countries)
+- Phone number (random, valid format for selected country)
+- Date of birth (random, 25-65 years old)
+- Home address number (random)
+- Home address (random street name, city, country based on phone code)
+- Card type: Always "physical" (hardcoded)
+- Card brand: Always "visa" (hardcoded)
+
+**Form Validation:**
+- Card name: Required, non-empty
+- Initial amount: Required, minimum $15
+- Referral code: Optional, validated if provided (must exist in database)
+
+**Processing Flow:**
+1. User fills form and clicks "Create Card"
+2. Frontend calls `POST /api/cards/create`
+3. Backend validates and processes (see Card Creation Flow section)
+4. User sees "Processing..." message
+5. Card appears in list with status "processing"
+6. Status updates to "active" when webhook completes
+
+**Components Used:**
+- `GlassInput` - Input fields
+- `GlassButton` - Next and Create buttons
+- `GlassCard` - Form container
+- `Header` - Back button (hidden title)
+- `BottomNav` - Bottom navigation
+
+**Step Indicator:**
+- Shows progress: Step 1 of 2, Step 2 of 2
+- Visual indicator with active/inactive states
+
+**API Calls:**
+- `POST /api/cards/create` - Creates card (handles entire flow including bridge)
+
+---
+
+#### `/cards/[cardCode]` (Card Details Page)
+**Purpose:** Detailed view of a specific card with full information and actions.
+
+**Features:**
+- **Card Information Display:**
+  - Card name
+  - Card status (active, frozen, processing)
+  - Last 4 digits
+  - Expiry date
+  - Balance (fresh from Cashwyre API)
+  
+- **Quick Actions:**
+  - "Freeze" button (if active) - calls `POST /api/cards/[cardCode]/freeze`
+  - "Unfreeze" button (if frozen) - calls `POST /api/cards/[cardCode]/unfreeze`
+  - "Top Up" button - navigates to `/cards/[cardCode]/topup`
+  
+- **Transaction History:**
+  - List of all card transactions from Cashwyre API
+  - Transaction details:
+    - Date/time
+    - Description/merchant
+    - Amount (debit/credit)
+    - Type
+    - Status
+
+**Data Source:**
+- Card reference: From Supabase (`card_code`, `card_name`, `status`)
+- Card details: From Cashwyre API (`balance`, `last4`, `expiryOn`, `transactions`)
+- Always fetches fresh data from Cashwyre on page load
+
+**Components Used:**
+- `GlassCard` - Card information display
+- `GlassButton` - Action buttons
+- `Header` - Back button
+- `BottomNav` - Bottom navigation
+
+**API Calls:**
+- `GET /api/cards/[cardCode]` - Fetches complete card details (Supabase + Cashwyre)
+- `POST /api/cards/[cardCode]/freeze` - Freezes card
+- `POST /api/cards/[cardCode]/unfreeze` - Unfreezes card
+
+---
+
+#### `/cards/[cardCode]/topup` (Top-up Page)
+**Purpose:** Page for adding funds to a card.
+
+**Features:**
+- Amount input field (minimum $6)
+- Current card balance display
+- "Top Up" button - calls `POST /api/cards/[cardCode]/topup`
+- Processing indicator
+- Success/error messages
+- Redirects to card details after successful top-up
+
+**Validation:**
+- Amount must be at least $6
+- Amount must not exceed available USDC balance (checked backend)
+
+**Components Used:**
+- `GlassInput` - Amount input
+- `GlassButton` - Top-up button
+- `GlassCard` - Form container
+- `Header` - Back button
+- `BottomNav` - Bottom navigation
+
+**API Calls:**
+- `POST /api/cards/[cardCode]/topup` - Initiates top-up (handles bridge transaction)
+
+---
+
+#### `/referrals` (Referrals Page)
+**Purpose:** Referral program dashboard with earnings, leaderboard, and referral code.
+
+**Features:**
+- **Referral Code Display:**
+  - User's unique referral code (copyable)
+  - Share button
+  
+- **Statistics Section:**
+  - Weekly earnings (USDC)
+  - All-time earnings (USDC)
+  - Total referrals count
+  
+- **Leaderboard:**
+  - Top referrers by weekly earnings
+  - Shows rank, username, earnings
+  - Scrollable list
+  
+- **Referral History:**
+  - List of all user's referrals
+  - Shows: Referred user, status (pending/completed), earnings, date
+  
+- **Claim Cashback Button:**
+  - Transfers earnings to wallet
+  - Resets weekly earnings
+  - Calls `POST /api/referrals/claim`
+
+**Mobile Layout:**
+- On mobile: Cashback and stats appear above, leaderboard below
+- On desktop: Multi-column layout (`lg:grid-cols-3`)
+
+**Components Used:**
+- `GlassCard` - Sections container
+- `GlassButton` - Claim button, copy code button
+- `Header` - Page title (hidden, only back button)
+- `BottomNav` - Bottom navigation
+
+**API Calls:**
+- `GET /api/referrals/my-code` - Gets referral code
+- `GET /api/referrals/stats` - Gets statistics
+- `GET /api/referrals/leaderboard` - Gets leaderboard
+- `GET /api/referrals/history` - Gets referral history
+- `POST /api/referrals/claim` - Claims cashback
+
+---
+
+#### `/settings` (Settings Page)
+**Purpose:** User profile and account settings.
+
+**Features:**
+- **Profile Card:**
+  - User avatar (initials)
+  - Full name display
+  - Email address
+  - User ID (first 8 characters)
+  - Member since date
+  
+- **Settings Options:**
+  - Security settings button (placeholder)
+  - Notifications toggle (visual only)
+  - Sign out button - opens `LogoutModal`
+
+**Components Used:**
+- `GlassCard` - Profile card
+- `LogoutModal` - Confirmation modal for logout
+- `Header` - Page title ("Settings")
+- `BottomNav` - Bottom navigation
+
+**API Calls:**
+- `GET /api/user/profile` - Fetches user profile
+
+---
+
+#### `/support` (Support Page)
+**Purpose:** Contact support form.
+
+**Features:**
+- Name input field
+- Email input field (pre-filled if logged in)
+- Subject input field
+- Message textarea
+- "Send Message" button - calls `POST /api/support/contact`
+- Success/error messages
+- Messages sent to Telegram Bot
+
+**Components Used:**
+- `GlassInput` - Input fields
+- `GlassButton` - Send button
+- `GlassCard` - Form container
+- `Header` - Page title
+- `BottomNav` - Bottom navigation
+
+**API Calls:**
+- `POST /api/support/contact` - Sends support message to Telegram
+
+---
+
+### Components
+
+#### `AnimatedBackground` (Global Background)
+**Purpose:** Provides animated Three.js-based particle system and card stream as global background for all pages.
+
+**Features:**
+- Three.js particle system
+- Scrolling card strip animation
+- Scanner effect animation
+- Fixed positioning (`fixed inset-0`)
+- Behind content (`z-index: -10`)
+- Non-interactive (`pointer-events-none`)
+- Blur effect applied via CSS
+
+**Technical Details:**
+- Uses `three` library
+- Renders Canvas with particles
+- CSS animations for card stream
+- No user interaction (purely visual)
+
+---
+
+#### `BottomNav` (Bottom Navigation)
+**Purpose:** Fixed bottom navigation bar for mobile navigation.
+
+**Features:**
+- Navigation items:
+  - Dashboard icon
+  - Cards icon
+  - Referrals icon
+  - Settings icon
+- Active state highlighting
+- Fixed position at bottom
+- Glassmorphism styling
+
+---
+
+#### `CodeInput` (Verification Code Input)
+**Purpose:** 6-digit code input component with auto-focus.
+
+**Features:**
+- 6 individual input boxes
+- Auto-focuses next box on input
+- Auto-focuses previous box on backspace
+- Numeric-only input
+- Styled with glassmorphism
+
+---
+
+#### `GlassButton` (Styled Button)
+**Purpose:** Reusable button component with glassmorphism styling.
+
+**Features:**
+- Multiple variants (primary, secondary, danger)
+- Uppercase text
+- Bold font (Bangers)
+- Cream borders and shadows
+- Hover effects
+- Disabled state
+
+---
+
+#### `GlassCard` (Container Card)
+**Purpose:** Reusable card container with glassmorphism styling.
+
+**Features:**
+- Glass effect background
+- Cream borders
+- Rounded corners
+- Glow effects
+- Reduced variant for subtle backgrounds
+
+---
+
+#### `GlassInput` (Styled Input)
+**Purpose:** Reusable input field with glassmorphism styling.
+
+**Features:**
+- Glass effect background
+- Cream borders
+- Cream text color
+- Bold font
+- Focus states
+- Placeholder styling
+
+---
+
+#### `Header` (Page Header)
+**Purpose:** Page header with title and back button.
+
+**Features:**
+- Back button (always shown)
+- Title text (hidden per user request)
+- Centered or left-aligned options
+- Glass styling
+
+---
+
+#### `Logo` (Brand Logo)
+**Purpose:** Displays the KARDS brand logo.
+
+**Features:**
+- Logo image display
+- Responsive sizing
+- Link to home page
+
+---
+
+#### `LogoutModal` (Logout Confirmation)
+**Purpose:** Confirmation modal for logout action.
+
+**Features:**
+- Confirmation message
+- "Cancel" button
+- "Sign Out" button
+- Calls logout handler on confirm
+- Removes token from localStorage
+- Redirects to login
+
+---
+
+#### `Notification` (Toast Notification)
+**Purpose:** Displays temporary success/error messages.
+
+**Features:**
+- Multiple variants (success, error, warning, info)
+- Auto-dismiss after timeout
+- Slide-in animation
+- Position options (top, bottom)
+
+---
+
+#### `ReceiveModal` (Receive Funds Modal)
+**Purpose:** Displays wallet address and QR code for receiving funds.
+
+**Features:**
+- Large QR code (480x480 pixels, displayed as 320x320)
+- Wallet address display (clickable to copy)
+- No separate copy button (address itself is clickable)
+- "Copied!" confirmation message
+- Auto-dismisses after copy
+
+**API Calls:**
+- `GET /api/wallet/address` - Gets wallet address (passed as prop)
+
+---
+
+#### `SendModal` (Send Funds Modal)
+**Purpose:** Modal for sending funds from wallet.
+
+**Features:**
+- Recipient address input
+- Amount input
+- Send button
+- Validation
+- Success/error messages
+
+**API Calls:**
+- `POST /api/wallet/send` - Sends funds
+
+---
+
+#### `SplashScreen` (Splash Screen)
+**Purpose:** Animated splash screen shown on app load.
+
+**Features:**
+- Logo animation
+- Loading animation
+- Auto-dismisses after animation
+- Calls `onFinish` callback when done
 
 ---
 
